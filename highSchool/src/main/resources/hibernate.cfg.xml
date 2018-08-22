@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE hibernate-configuration PUBLIC
+        "-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-configuration-3.0.dtd">
+ 
+<hibernate-configuration>
+    <session-factory>
+        <!-- Database connection settings -->
+        <property name="connection.driver_class">com.mysql.jdbc.Driver</property>
+        <property name="connection.url">jdbc:mysql://localhost:3306/h</property>
+        <property name="connection.username">root</property>
+        <property name="connection.password"></property>
+        
+        <!-- JDBC connection pool (use the built-in) -->
+        <property name="connection.pool_size">1</property>
+        
+        <!-- SQL dialect -->
+        <property name="dialect">org.hibernate.dialect.MySQL5Dialect</property>
+
+        <!-- Disable the second-level cache  -->
+        <property name="cache.provider_class">org.hibernate.cache.NoCacheProvider</property>
+        
+        <!-- Echo all executed SQL to stdout -->
+        <property name="show_sql">true</property>
+
+        <!-- Drop the existing tables and create new one -->
+        <property name="hbm2ddl.auto">update</property>
+ 
+        <!-- Mention here all the model classes along with their package name -->
+ 		<mapping class="org.marcoWenzel.middleware.highSchool.model.Student"/>
+ 		 <mapping class="org.marcoWenzel.middleware.highSchool.model.Parent"/>
+ 		 <mapping class="org.marcoWenzel.middleware.highSchool.model.Course"/>
+ 		 <mapping class="org.marcoWenzel.middleware.highSchool.model.Teacher"/>
+ 		 <mapping class="org.marcoWenzel.middleware.highSchool.model.Course_Class"/>
+ 		 <mapping class="org.marcoWenzel.middleware.highSchool.model.Appointment"/>
+ 		 <mapping class="org.marcoWenzel.middleware.highSchool.model.Payement"/>
+ 		 <mapping class="org.marcoWenzel.middleware.highSchool.model.Notificatio"/>
+ 		 <mapping class="org.marcoWenzel.middleware.highSchool.model.Administrator"/>
+ 		<mapping class="org.marcoWenzel.middleware.highSchool.model.TimeTable"/>
+ 		<mapping class="org.marcoWenzel.middleware.highSchool.model.LogIn"/>
+ 		
+    </session-factory>
+</hibernate-configuration>
