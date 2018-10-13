@@ -1,5 +1,6 @@
 package org.marcoWenzel.middleware.highSchool.resources;
 
+import java.security.Principal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -55,13 +56,15 @@ import org.marcoWenzel.middleware.highSchool.wrapper.PaymentWrapper;
 import org.marcoWenzel.middleware.highSchool.wrapper.Wrapper;
 @Secured({Category.Parent})
 @Path("parent/{user_id}")
-public class ParentResource {
+public class ParentResource implements Principal{
 	ParentDAO parentDao = new ParentDAO();
 	StudentDAO studentDao = new StudentDAO();
 	Course_ClassDAO course_classDao = new Course_ClassDAO();
 	AppointmentDAO appointmentDao = new AppointmentDAO();
 	NotificationDAO notificationDao = new NotificationDAO();
 	PaymentDAO paymentDao = new PaymentDAO();
+	@Context
+	UriInfo uriInfo;
 	@GET
 	@Produces(MediaType.APPLICATION_XML)
 	public Response getParentServices(@PathParam("user_id")String id,@Context UriInfo uriInfo) {
@@ -591,5 +594,14 @@ public class ParentResource {
 		newL.setRel(rel);
 		newL.setType(type);
 		list.add(newL);
+	}
+
+	@Override
+	public String getName() {
+		
+		System.out.println(uriInfo.getBaseUri().toString());
+		
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

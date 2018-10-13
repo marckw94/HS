@@ -58,6 +58,7 @@ public class TeacherResource {
 	@GET
 	@Produces(MediaType.APPLICATION_XML)
 	public Response getParentServices(@PathParam("user_id")String id,@Context UriInfo uriInfo) {
+		
 		List<Link> uris = new ArrayList<Link>();
 		String uri = uriInfo.getAbsolutePathBuilder().build().toString();
 		addLinkToList(uris, uri, "self", "GET");

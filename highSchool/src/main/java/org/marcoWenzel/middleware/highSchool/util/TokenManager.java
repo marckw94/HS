@@ -42,6 +42,7 @@ public class TokenManager {
 					   .withIssuer("prova")
 					   .withIssuedAt(now)
 					   .withNotBefore(now)
+					   .withClaim("username", username)
 					   .withClaim("category", category) //questo è il claim creato ad hoc per la categoria utente
 					   .withHeader(headerClaims)
 					   .sign(algorithm);
@@ -78,7 +79,12 @@ public class TokenManager {
 		
 		return categoryInInput;
 	}
-	
+	public static String validateUserToken(String token){
+		DecodedJWT jwt = JWT.decode(token);
+		String userInInput= jwt.getClaim("username").asString();
+		
+		return userInInput;
+	}
 	
 }
 
