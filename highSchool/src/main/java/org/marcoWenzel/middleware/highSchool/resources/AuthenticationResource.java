@@ -54,7 +54,7 @@ public class AuthenticationResource {
 		    	addLinkToList(uris, uri, "general services", "GET");
 	    	}else if(log.getCategory().equals("Admin")) {
 	    		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
-						.build().toString();
+	    				.build().toString();
 	    		addLinkToList(uris, uri, "general services", "GET");
 	    	}else {
     			return Response.status(Response.Status.BAD_REQUEST).build();

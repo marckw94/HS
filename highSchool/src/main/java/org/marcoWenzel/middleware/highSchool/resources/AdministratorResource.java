@@ -48,6 +48,8 @@ import org.marcoWenzel.middleware.highSchool.model.Student;
 import org.marcoWenzel.middleware.highSchool.model.Teacher;
 import org.marcoWenzel.middleware.highSchool.model.TimeTable;
 import org.marcoWenzel.middleware.highSchool.model.TimeTable_Id;
+import org.marcoWenzel.middleware.highSchool.response.CourseResponse;
+import org.marcoWenzel.middleware.highSchool.response.ParentResponse;
 import org.marcoWenzel.middleware.highSchool.response.StudentResponse;
 import org.marcoWenzel.middleware.highSchool.util.Category;
 import org.marcoWenzel.middleware.highSchool.util.Link;
@@ -71,6 +73,87 @@ public class AdministratorResource {
 	Course_ClassDAO course_classDao = new Course_ClassDAO();
 	TeacherDAO teacherDao = new TeacherDAO();
 	PaymentDAO paymentDao = new PaymentDAO();
+	
+	@GET 
+	@Path("allCourses")
+	@Produces(MediaType.APPLICATION_XML)
+	public Response getAllClasses(@Context UriInfo uriInfo) {
+		List<Course>allCourses=classDao.findAll();
+		List <CourseResponse> crs= new ArrayList<CourseResponse>();
+		for (Course i : allCourses) {
+    		CourseResponse newClass = new CourseResponse();
+    		newClass.setClassRoom(i.getClassRoom());
+    		newClass.setCourseDescription(i.getCourseDescription());
+    		newClass.setCourseName(i.getCourseName());
+    		newClass.setIdCourse(i.getIdCourse());
+    		String uri=uriInfo.getAbsolutePathBuilder().build().toString();
+    		newClass.addLink(uri, "self", "GET");
+    		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
+    				.build().toString();
+            newClass.addLink( uri, "general services", "GET");
+    		crs.add(newClass);
+		}
+		GenericEntity<List<CourseResponse>> e = new GenericEntity<List<CourseResponse>>(crs) {};
+		if(allCourses.size()>0) {
+			return Response.status(Response.Status.OK).entity(e).build();
+		}else {
+			return Response.status(Response.Status.BAD_REQUEST).build();
+		}
+	}
+	
+	@GET 
+	@Path("allParents")
+	@Produces(MediaType.APPLICATION_XML)
+	public Response getAllParents(@Context UriInfo uriInfo) {
+		List<Parent>allParents=parentDao.findAll();
+		List <ParentResponse> crs= new ArrayList<ParentResponse>();
+		for (Parent i : allParents) {
+    		ParentResponse newPar = new ParentResponse();
+    		newPar.setUsername(i.getUsername());
+    		newPar.setPassword("*****");
+    		newPar.setName(i.getName());
+    		newPar.setSurname(i.getSurname());
+    		String uri=uriInfo.getAbsolutePathBuilder().build().toString();
+    		newPar.addLink(uri, "self", "GET");
+    		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
+    				.build().toString();
+            newPar.addLink( uri, "general services", "GET");
+    		crs.add(newPar);
+		}
+		GenericEntity<List<ParentResponse>> e = new GenericEntity<List<ParentResponse>>(crs) {};
+		if(allParents.size()>0) {
+			return Response.status(Response.Status.OK).entity(e).build();
+		}else {
+			return Response.status(Response.Status.BAD_REQUEST).build();
+		}
+	}
+	
+	@GET 
+	@Path("allStudents")
+	@Produces(MediaType.APPLICATION_XML)
+	public Response getAllStudents(@Context UriInfo uriInfo) {
+		List<Student>allStudents=studentDao.findAll();
+		List <StudentResponse> crs= new ArrayList<StudentResponse>();
+		for (Student i : allStudents) {
+    		StudentResponse newStud = new StudentResponse();
+    		newStud.setRollNo(i.getRollNo());
+    		newStud.setLastName(i.getLastName());
+    		newStud.setName(i.getName());
+    		String uri=uriInfo.getAbsolutePathBuilder().build().toString();
+    		newStud.addLink(uri, "self", "GET");
+    		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
+    				.build().toString();
+            newStud.addLink( uri, "general services", "GET");
+    		crs.add(newStud);
+		}
+		GenericEntity<List<StudentResponse>> e = new GenericEntity<List<StudentResponse>>(crs) {};
+		if(allStudents.size()>0) {
+			return Response.status(Response.Status.OK).entity(e).build();
+		}else {
+			return Response.status(Response.Status.BAD_REQUEST).build();
+		}
+	}
+	
 	@GET
 	@Produces(MediaType.APPLICATION_XML)
 	public Response getParentServices(@PathParam("user_id")String id,@Context UriInfo uriInfo) {
