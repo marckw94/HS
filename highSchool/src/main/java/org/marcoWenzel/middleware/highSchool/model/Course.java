@@ -19,7 +19,7 @@ import javax.persistence.Table;
 @Entity
 @Table(name="COURSE_INFORMATION")
 public class Course  implements Serializable {
-	@Id  
+	
 	private int idCourse;
 	private String courseName;
 	private String courseDescription;
@@ -27,6 +27,10 @@ public class Course  implements Serializable {
 	@ManyToOne
 	@JoinColumn(name="TEACHER_ID")
 	private Teacher teacher;
+	//@ManyToOne()
+	//@JoinColumn(name="CLASS_ID")
+	
+	//private Classes classBelong;
 	public Course() {}
 	public String getCourseName() {
 		return courseName;
@@ -54,6 +58,7 @@ public class Course  implements Serializable {
 	public void setClassRoom(String classRoom) {
 		this.classRoom = classRoom;
 	}
+	@Id  
 	//@OneToOne(mappedBy="primaryKey.studentId",cascade=CascadeType.ALL)
 	public int getIdCourse() {
 		return idCourse;
@@ -61,4 +66,13 @@ public class Course  implements Serializable {
 	public void setIdCourse(int idCourse) {
 		this.idCourse = idCourse;
 	}
+	//@ManyToOne()
+	//@JoinColumn(name="CLASSKEEP_ID",referencedColumnName="keepCourses" )
+	
+	/*public Classes getClassBelong() {
+		return classBelong;
+	}
+	public void setClassBelong(Classes classBelong) {
+		this.classBelong = classBelong;
+	}*/
 }

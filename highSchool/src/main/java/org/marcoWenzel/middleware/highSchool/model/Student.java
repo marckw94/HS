@@ -38,6 +38,9 @@ public class Student implements Serializable {
 	@ManyToOne()
 	@JoinColumn(name="PARENT_USERNAME")
 	private Parent parentUsername;
+	@ManyToOne()
+	@JoinColumn(name="CLASS_ID" )
+	private Classes enrolledClass;
 	public Student() {}
 	public Student(String name, String lastName) {
 		
@@ -79,6 +82,13 @@ public class Student implements Serializable {
 	public String toString() {
 		return "Student [rollNo=" + rollNo + ", name=" + name + ", lastName=" + lastName + ", parentUsername="
 				+ parentUsername + "]";
+	}
+
+	public Classes getEnrolledClass() {
+		return enrolledClass;
+	}
+	public void setEnrolledClass(Classes enrolledClass) {
+		this.enrolledClass = enrolledClass;
 	}
 	
 	

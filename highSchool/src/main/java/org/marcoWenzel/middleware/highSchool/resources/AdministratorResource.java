@@ -28,7 +28,8 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.marcoWenzel.middleware.highSchool.dao.AdministratorDAO;
-
+import org.marcoWenzel.middleware.highSchool.dao.CCAssotiationDAO;
+import org.marcoWenzel.middleware.highSchool.dao.ClassDAO;
 import org.marcoWenzel.middleware.highSchool.dao.CourseDAO;
 import org.marcoWenzel.middleware.highSchool.dao.Course_ClassDAO;
 import org.marcoWenzel.middleware.highSchool.dao.LogInDAO;
@@ -38,7 +39,10 @@ import org.marcoWenzel.middleware.highSchool.dao.StudentDAO;
 import org.marcoWenzel.middleware.highSchool.dao.TeacherDAO;
 import org.marcoWenzel.middleware.highSchool.dao.TimeTableDAO;
 import org.marcoWenzel.middleware.highSchool.model.Administrator;
+import org.marcoWenzel.middleware.highSchool.model.Classes;
 import org.marcoWenzel.middleware.highSchool.model.Course;
+import org.marcoWenzel.middleware.highSchool.model.CourseClassAssociation;
+import org.marcoWenzel.middleware.highSchool.model.CourseClassAssociation_Id;
 import org.marcoWenzel.middleware.highSchool.model.Course_Class;
 import org.marcoWenzel.middleware.highSchool.model.Course_Class_Id;
 import org.marcoWenzel.middleware.highSchool.model.LogIn;
@@ -48,14 +52,17 @@ import org.marcoWenzel.middleware.highSchool.model.Student;
 import org.marcoWenzel.middleware.highSchool.model.Teacher;
 import org.marcoWenzel.middleware.highSchool.model.TimeTable;
 import org.marcoWenzel.middleware.highSchool.model.TimeTable_Id;
+import org.marcoWenzel.middleware.highSchool.response.ClassResponse;
 import org.marcoWenzel.middleware.highSchool.response.CourseResponse;
 import org.marcoWenzel.middleware.highSchool.response.ParentResponse;
 import org.marcoWenzel.middleware.highSchool.response.StudentResponse;
 import org.marcoWenzel.middleware.highSchool.util.Category;
 import org.marcoWenzel.middleware.highSchool.util.Link;
 import org.marcoWenzel.middleware.highSchool.util.Secured;
+import org.marcoWenzel.middleware.highSchool.wrapper.ClassWrapper;
 import org.marcoWenzel.middleware.highSchool.wrapper.CourseWrapper;
 import org.marcoWenzel.middleware.highSchool.wrapper.Course_ClassWrapper;
+import org.marcoWenzel.middleware.highSchool.wrapper.EnrollRequest;
 import org.marcoWenzel.middleware.highSchool.wrapper.ParentWrapper;
 import org.marcoWenzel.middleware.highSchool.wrapper.PaymentWrapper;
 import org.marcoWenzel.middleware.highSchool.wrapper.TeacherWrapper;
@@ -66,19 +73,20 @@ import org.marcoWenzel.middleware.highSchool.wrapper.Wrapper;
 public class AdministratorResource {
 	AdministratorDAO administratorDao = new AdministratorDAO();
 	TimeTableDAO timeTableDao = new TimeTableDAO();
-	CourseDAO classDao = new CourseDAO();
+	CourseDAO courseDao = new CourseDAO();
 	LogInDAO loginDao = new LogInDAO();
 	StudentDAO studentDao = new StudentDAO();
 	ParentDAO parentDao = new ParentDAO();
 	Course_ClassDAO course_classDao = new Course_ClassDAO();
 	TeacherDAO teacherDao = new TeacherDAO();
 	PaymentDAO paymentDao = new PaymentDAO();
-	
+	ClassDAO classDao = new ClassDAO();
+	CCAssotiationDAO ccaDao = new CCAssotiationDAO();
 	@GET 
 	@Path("allCourses")
 	@Produces(MediaType.APPLICATION_XML)
 	public Response getAllClasses(@Context UriInfo uriInfo) {
-		List<Course>allCourses=classDao.findAll();
+		List<Course>allCourses=courseDao.findAll();
 		List <CourseResponse> crs= new ArrayList<CourseResponse>();
 		for (Course i : allCourses) {
     		CourseResponse newClass = new CourseResponse();
@@ -228,31 +236,40 @@ public class AdministratorResource {
 
 		return Response.status(Response.Status.OK).entity(e).build();
 	}
-	@POST
+	@PUT
 	@Path("enrollment")
 	@Consumes(MediaType.APPLICATION_XML)
 	@Produces(MediaType.APPLICATION_XML)
-	public Response enrollStud(Course_ClassWrapper newEnroll,@Context UriInfo uriInfo) {
-		Course_Class enroll = new Course_Class();
+	public Response enrollStud(EnrollRequest newEnroll,@Context UriInfo uriInfo) {
+		Student student = studentDao.get(newEnroll.getIdStud());
+		
+		if (student.getEnrolledClass()!=null) {
+			 return Response.status(Response.Status.BAD_REQUEST).build();
+		}
+		Classes enrollClass =classDao.get(newEnroll.getIdClass());
+		enrollClass.setEnrolledStud(new ArrayList<Student>());
+		enrollClass.getEnrolledStud().add(student);
+		student.setEnrolledClass(enrollClass);
+		/*Course_Class enroll = new Course_Class();
 		Student student = studentDao.get(newEnroll.getSw().getRollNo());
-		Course course = classDao.get(newEnroll.getCw().getIdCourse());
+		Course course = courseDao.get(newEnroll.getCw().getIdCourse());
 		enroll.setId(new Course_Class_Id());
 		enroll.getId().setCourseId(course);
 		enroll.getId().setStudentId(student);
 		enroll.setMark(0);
-		enroll.setPass(false);
+		enroll.setPass(false);*/
 		List<Link> uris = new ArrayList<Link>();
 		String uri=uriInfo.getAbsolutePathBuilder().build().toString();
 		addLinkToList(uris, uri, "self", "POST");
-		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class).path("classes")
+		/*uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class).path("classes")
 				.path(Long.toString(enroll.getId().getCourseId().getIdCourse()))
 				.build().toString();
-		addLinkToList(uris, uri, "see other subscirbed students", "GET");
+		addLinkToList(uris, uri, "see other subscirbed students", "GET");*/
 		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
 				.build().toString();
         addLinkToList(uris, uri, "general services", "GET");
 		GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
-		 if (course_classDao.create(enroll)) {
+		 if (classDao.update(enrollClass) && studentDao.update(student)) {
 	            return Response.status(Response.Status.OK).entity(e).build();
 	        }
 	        else {
@@ -264,23 +281,25 @@ public class AdministratorResource {
 	@Path("classes/{class_id}")
 	@Produces(MediaType.APPLICATION_XML)
 	 public Response allStudEnrolled(@PathParam("class_id") int idClass,@Context UriInfo uriInfo) {
-		List<Course_Class> ccList = course_classDao.findAll();
+		List<Classes> ccList = classDao.findAll();
 		List<StudentResponse> studList = new ArrayList<StudentResponse>();
 		if (ccList == null )
 			 return Response.status(Response.Status.BAD_REQUEST).build();
 		else 
-			for (Course_Class cc : ccList) {
-				if (cc.getId().getCourseId().getIdCourse()==idClass) {
-					StudentResponse newStud= new StudentResponse();
-					newStud.setRollNo(cc.getId().getStudentId().getRollNo());
-					newStud.setLastName(cc.getId().getStudentId().getLastName());
-					newStud.setName(cc.getId().getStudentId().getName());
-					String uri= uriInfo.getAbsolutePathBuilder().build().toString();
-					newStud.addLink(uri, "self", "GET");
-					uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
-		    				.build().toString();
-		        	newStud.addLink(uri, "general services","GET");
-					studList.add(newStud);
+			for (Classes cc : ccList) {
+				if (cc.getIdClass()==idClass) {
+					for (Student s : cc.getEnrolledStud()) {
+						StudentResponse newStud= new StudentResponse();
+						newStud.setRollNo(s.getRollNo());
+						newStud.setLastName(s.getLastName());
+						newStud.setName(s.getName());
+						String uri= uriInfo.getAbsolutePathBuilder().build().toString();
+						newStud.addLink(uri, "self", "GET");
+						uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
+			    				.build().toString();
+			        	newStud.addLink(uri, "general services","GET");
+						studList.add(newStud);
+					}	
 				}
 			}
 		GenericEntity<List<StudentResponse>> e = new GenericEntity<List<StudentResponse>>(studList) {};
@@ -380,7 +399,7 @@ public class AdministratorResource {
 	@Consumes(MediaType.APPLICATION_XML)
 	@Produces(MediaType.APPLICATION_XML)
 	 public Response createTeacher(TeacherWrapper newT,@Context UriInfo uriInfo) {
-		List<Course> courseList=classDao.findAll();
+		List<Course> courseList=courseDao.findAll();
 		LogIn newlog= new LogIn();
 		newlog.setUsername(newT.getTeacherId());
 		newlog.setCategory("Teacher");
@@ -435,19 +454,64 @@ public class AdministratorResource {
 	        addLinkToList(uris, uri, "general services", "GET");
 		}
 		GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
-		if (newCourse!= null && classDao.create(newCourse)) {
+		if (newCourse!= null && courseDao.create(newCourse)) {
 			 return Response.status(Response.Status.OK).entity(e).build();
 		}
 		return Response.status(Response.Status.BAD_REQUEST).build();
 	}
-	
-	@Path("association/{teacher_id}/{course_id}")
+	@Path("newClass")
+	@POST
+	@Consumes(MediaType.APPLICATION_XML)
+	@Produces(MediaType.APPLICATION_XML)
+	 public Response createClass(ClassWrapper newC,@Context UriInfo uriInfo) {
+		Classes newClass = new Classes();
+		newClass.setIdClass(newC.getIdClass());
+		newClass.setClassName(newC.getClassName());
+		List<Link> uris = new ArrayList<Link>();
+		String uri=uriInfo.getAbsolutePathBuilder().build().toString();
+		addLinkToList(uris, uri, "self", "POST");
+		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
+				.build().toString();
+        addLinkToList(uris, uri, "general services", "GET");
+        GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
+		if(newC!=null && classDao.create(newClass)) {
+			 return Response.status(Response.Status.OK).entity(e).build();
+		}
+		return Response.status(Response.Status.BAD_REQUEST).build();
+	}
+	@Path("allClasses")
+	@GET
+	@Consumes(MediaType.APPLICATION_XML)
+	@Produces(MediaType.APPLICATION_XML)
+	 public Response seeClass(@Context UriInfo uriInfo) {
+		List<Classes>allC=classDao.findAll();
+		List<ClassResponse> allCResp=new ArrayList<ClassResponse>();
+		System.out.println(allC);
+		for(Classes c : allC) {
+			ClassResponse cr= new ClassResponse();
+			cr.setIdClass(c.getIdClass());
+			cr.setClassName(c.getClassName());
+			String uri=uriInfo.getAbsolutePathBuilder().build().toString();
+    		cr.addLink(uri, "self", "GET");
+    		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
+    				.build().toString();
+            cr.addLink( uri, "general services", "GET");
+            allCResp.add(cr);
+		}
+		GenericEntity<List<ClassResponse>> e = new GenericEntity<List<ClassResponse>>(allCResp) {};
+		if(allC.size()>0) {
+			return Response.status(Response.Status.OK).entity(e).build();
+		}else {
+			return Response.status(Response.Status.BAD_REQUEST).build();
+		}
+	}
+	@Path("newTeacherCourse/{teacher_id}/{course_id}")
 	@PUT
 	@Consumes(MediaType.APPLICATION_XML)
 	@Produces(MediaType.APPLICATION_XML)
 	 public Response createAssociationTeacher(@PathParam("teacher_id") String teacherId,
 			 @PathParam("course_id") int courseId,@Context UriInfo uriInfo) {
-		Course course= classDao.get(courseId);
+		Course course= courseDao.get(courseId);
 		Teacher teacher = teacherDao.get(teacherId);
 		teacher.getCourseKeep().add(course);
 		course.setTeacher(teacher);
@@ -458,16 +522,40 @@ public class AdministratorResource {
 				.build().toString();
         addLinkToList(uris, uri, "general services", "GET");
 		GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
-		if (course!= null && teacher!= null && teacherDao.update(teacher) && classDao.update(course)) {
+		if (course!= null && teacher!= null && teacherDao.update(teacher) && courseDao.update(course)) {
 			 return Response.status(Response.Status.OK).entity(e).build();
 		}
 		return Response.status(Response.Status.BAD_REQUEST).build();
 	}
-	
+	@Path("newClassCourse/{class_id}/{course_id}")
+	@POST
+	@Consumes(MediaType.APPLICATION_XML)
+	@Produces(MediaType.APPLICATION_XML)
+	 public Response createAssociationClass(@PathParam("class_id") int classId,
+			 @PathParam("course_id") int courseId,@Context UriInfo uriInfo) {
+		Course course= courseDao.get(courseId);
+		Classes teacher = classDao.get(classId);
+		CourseClassAssociation cca = new CourseClassAssociation();
+		cca.setPrimaryKey(new CourseClassAssociation_Id());
+		cca.getPrimaryKey().setClass_id(classId);
+		cca.getPrimaryKey().setCourse_id(courseId);
+		List<Link> uris = new ArrayList<Link>();
+		String uri=uriInfo.getAbsolutePathBuilder().build().toString();
+		addLinkToList(uris, uri, "self", "POST");
+		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
+				.build().toString();
+        addLinkToList(uris, uri, "general services", "GET");
+		GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
+		if (course!= null && teacher!= null && ccaDao.create(cca)) {
+			 return Response.status(Response.Status.OK).entity(e).build();
+		}
+		return Response.status(Response.Status.BAD_REQUEST).build();
+	}
 	@Path("newPayment")
 	@POST
 	@Consumes(MediaType.APPLICATION_XML)
 	@Produces(MediaType.APPLICATION_XML)
+	
 	 public Response issuePayment(Payement newP,@Context UriInfo uriInfo) {
 		newP.setPayID(paymentDao.maxid());
 		List<Link> uris = new ArrayList<Link>();

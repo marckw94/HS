@@ -27,6 +27,7 @@
         <property name="hbm2ddl.auto">update</property>
  
         <!-- Mention here all the model classes along with their package name -->
+         		<mapping class="org.marcoWenzel.middleware.highSchool.model.Classes"/>
  		<mapping class="org.marcoWenzel.middleware.highSchool.model.Student"/>
  		 <mapping class="org.marcoWenzel.middleware.highSchool.model.Parent"/>
  		 <mapping class="org.marcoWenzel.middleware.highSchool.model.Course"/>
@@ -38,6 +39,8 @@
  		 <mapping class="org.marcoWenzel.middleware.highSchool.model.Administrator"/>
  		<mapping class="org.marcoWenzel.middleware.highSchool.model.TimeTable"/>
  		<mapping class="org.marcoWenzel.middleware.highSchool.model.LogIn"/>
+ 		<mapping class="org.marcoWenzel.middleware.highSchool.model.CourseClassAssociation"/>
+ 		<mapping class="org.marcoWenzel.middleware.highSchool.model.Classes"/>
  		
     </session-factory>
 </hibernate-configuration>
