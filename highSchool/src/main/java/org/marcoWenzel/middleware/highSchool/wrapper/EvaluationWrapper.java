@@ -5,11 +5,11 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement
 @Table
-public class Course_ClassWrapper {
+public class EvaluationWrapper {
 	private CourseWrapper cw;
 	private Wrapper sw;
 	private int mark;
-	public Course_ClassWrapper() {
+	public EvaluationWrapper() {
 		this.cw = new CourseWrapper();
 		this.sw= new Wrapper();
 		

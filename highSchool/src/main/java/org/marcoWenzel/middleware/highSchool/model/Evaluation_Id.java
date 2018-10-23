@@ -11,13 +11,13 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 
 @Embeddable
-public class Course_Class_Id  implements Serializable {
+public class Evaluation_Id  implements Serializable {
 	
 	private Course courseId;
 	
  	private Student studentId;
  	//@ManyToOne
-	public Course_Class_Id() {}
+	public Evaluation_Id() {}
 	@OneToOne(cascade=CascadeType.ALL)
 	@JoinColumn(name="COURSE_ID")
 	public Course getCourseId() {
@@ -51,7 +51,7 @@ public class Course_Class_Id  implements Serializable {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		Course_Class_Id other = (Course_Class_Id) obj;
+		Evaluation_Id other = (Evaluation_Id) obj;
 		if (courseId == null) {
 			if (other.courseId != null)
 				return false;

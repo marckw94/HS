@@ -9,12 +9,12 @@ import org.marcoWenzel.middleware.highSchool.util.Link;
 import org.marcoWenzel.middleware.highSchool.wrapper.CourseWrapper;
 import org.marcoWenzel.middleware.highSchool.wrapper.Wrapper;
 @XmlRootElement
-public class Course_ClassResponse {
+public class EvaluationResponse {
 	private CourseWrapper cw;
 	private Wrapper sw;
 	private int mark;
 	private List<Link> links;  
-	public Course_ClassResponse() {
+	public EvaluationResponse() {
 		this.links = new ArrayList<>();
 		this.cw = new CourseWrapper();
 		this.sw= new Wrapper();

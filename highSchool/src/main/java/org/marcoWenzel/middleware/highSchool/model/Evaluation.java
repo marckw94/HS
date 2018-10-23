@@ -18,17 +18,17 @@ import javax.validation.constraints.Size;
 	@AssociationOverride(name="primaryKey.courseId",joinColumns=@JoinColumn(name="COURSE_ID"))
 	})
 @Entity
-public class Course_Class  implements Serializable {
+public class Evaluation  implements Serializable {
 	
-	private Course_Class_Id primaryKey;
+	private Evaluation_Id primaryKey;
 	private boolean isPass;
 	private int mark;
-	public Course_Class () {}
+	public Evaluation () {}
 	@EmbeddedId 
-	public Course_Class_Id getId() {
+	public Evaluation_Id getId() {
 		return primaryKey;
 	}
-	public void setId(Course_Class_Id id) {
+	public void setId(Evaluation_Id id) {
 		this.primaryKey = id;
 	}
 	public boolean isPass() {

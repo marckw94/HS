@@ -21,11 +21,11 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
-import org.marcoWenzel.middleware.highSchool.dao.Course_ClassDAO;
+import org.marcoWenzel.middleware.highSchool.dao.EvaluationDAO;
 import org.marcoWenzel.middleware.highSchool.dao.NotificationDAO;
 import org.marcoWenzel.middleware.highSchool.dao.ParentDAO;
 import org.marcoWenzel.middleware.highSchool.dao.TeacherDAO;
-import org.marcoWenzel.middleware.highSchool.model.Course_Class;
+import org.marcoWenzel.middleware.highSchool.model.Evaluation;
 import org.marcoWenzel.middleware.highSchool.model.Notificatio;
 import org.marcoWenzel.middleware.highSchool.model.Notification_Id;
 import org.marcoWenzel.middleware.highSchool.model.Parent;
@@ -41,7 +41,7 @@ public class NotificationResource {
  NotificationDAO notificationDao = new NotificationDAO();
  ParentDAO parentDao = new ParentDAO();
  TeacherDAO teacherDao = new TeacherDAO(); 
- Course_ClassDAO courseClassDao = new Course_ClassDAO();
+ EvaluationDAO courseClassDao = new EvaluationDAO();
  
  @POST
  @Path("newParentNotif/{parent_id}")
@@ -186,7 +186,7 @@ public class NotificationResource {
  @Produces(MediaType.APPLICATION_XML)
  public Response createParClass(@PathParam("class_id") int id,NotificationWrapper newN
 		 ,@Context UriInfo uriInfo) {
-     List<Course_Class> classes= courseClassDao.findAll();
+     List<Evaluation> classes= courseClassDao.findAll();
      Set<String> parentStudentInClass = new HashSet<String>();
      Notificatio notification = new Notificatio();
 	 notification.setPrimaryKey(new Notification_Id());
@@ -202,7 +202,7 @@ public class NotificationResource {
      if (classes == null ) {
          return Response.status(Response.Status.BAD_REQUEST).build();
      }
-     for(Course_Class cc :classes) {
+     for(Evaluation cc :classes) {
     	 if(cc.getId().getCourseId().getIdCourse()==id) {
     		 parentStudentInClass.add(cc.getId().getStudentId().getParentUsername().getUsername());
     	 }
@@ -244,7 +244,7 @@ public class NotificationResource {
 	 notification.setContent(newN.getContent());
 	 notification.setContentType(newN.getContentType());
 	 notification.setSendDate(newN.getSendDate());
-     List<Course_Class> classes= courseClassDao.findAll();
+     List<Evaluation> classes= courseClassDao.findAll();
      Teacher teacher = null;
      List<Link> uris = new ArrayList<Link>();
 	 String uri=uriInfo.getAbsolutePathBuilder().build().toString();
@@ -255,7 +255,7 @@ public class NotificationResource {
      if (classes == null ) {
          return Response.status(Response.Status.BAD_REQUEST).build();
      }
-     for(Course_Class cc :classes) {
+     for(Evaluation cc :classes) {
     	 if(cc.getId().getCourseId().getIdCourse()==id) {
     		 teacher = cc.getId().getCourseId().getTeacher();
     	 }

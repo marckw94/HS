@@ -27,20 +27,20 @@ import javax.ws.rs.core.UriInfo;
 
 import org.hibernate.engine.transaction.jta.platform.internal.SynchronizationRegistryBasedSynchronizationStrategy;
 import org.marcoWenzel.middleware.highSchool.dao.AppointmentDAO;
-import org.marcoWenzel.middleware.highSchool.dao.Course_ClassDAO;
+import org.marcoWenzel.middleware.highSchool.dao.EvaluationDAO;
 import org.marcoWenzel.middleware.highSchool.dao.NotificationDAO;
 import org.marcoWenzel.middleware.highSchool.dao.ParentDAO;
 import org.marcoWenzel.middleware.highSchool.dao.PaymentDAO;
 import org.marcoWenzel.middleware.highSchool.dao.StudentDAO;
 import org.marcoWenzel.middleware.highSchool.model.Appointment;
 import org.marcoWenzel.middleware.highSchool.model.Appointment_Id;
-import org.marcoWenzel.middleware.highSchool.model.Course_Class;
+import org.marcoWenzel.middleware.highSchool.model.Evaluation;
 import org.marcoWenzel.middleware.highSchool.model.Notificatio;
 import org.marcoWenzel.middleware.highSchool.model.Parent;
 import org.marcoWenzel.middleware.highSchool.model.Payement;
 import org.marcoWenzel.middleware.highSchool.model.Student;
 import org.marcoWenzel.middleware.highSchool.response.AppointmentResponse;
-import org.marcoWenzel.middleware.highSchool.response.Course_ClassResponse;
+import org.marcoWenzel.middleware.highSchool.response.EvaluationResponse;
 import org.marcoWenzel.middleware.highSchool.response.NotificationResponse;
 import org.marcoWenzel.middleware.highSchool.response.ParentResponse;
 import org.marcoWenzel.middleware.highSchool.response.PaymentResponse;
@@ -49,7 +49,7 @@ import org.marcoWenzel.middleware.highSchool.util.Category;
 import org.marcoWenzel.middleware.highSchool.util.Link;
 import org.marcoWenzel.middleware.highSchool.util.Secured;
 import org.marcoWenzel.middleware.highSchool.wrapper.AppointmentWrapper;
-import org.marcoWenzel.middleware.highSchool.wrapper.Course_ClassWrapper;
+import org.marcoWenzel.middleware.highSchool.wrapper.EvaluationWrapper;
 import org.marcoWenzel.middleware.highSchool.wrapper.NotificationWrapper;
 import org.marcoWenzel.middleware.highSchool.wrapper.ParentWrapper;
 import org.marcoWenzel.middleware.highSchool.wrapper.PaymentWrapper;
@@ -59,7 +59,7 @@ import org.marcoWenzel.middleware.highSchool.wrapper.Wrapper;
 public class ParentResource implements Principal{
 	ParentDAO parentDao = new ParentDAO();
 	StudentDAO studentDao = new StudentDAO();
-	Course_ClassDAO course_classDao = new Course_ClassDAO();
+	EvaluationDAO course_classDao = new EvaluationDAO();
 	AppointmentDAO appointmentDao = new AppointmentDAO();
 	NotificationDAO notificationDao = new NotificationDAO();
 	PaymentDAO paymentDao = new PaymentDAO();
@@ -259,20 +259,20 @@ public class ParentResource implements Principal{
 	@GET
 	@Produces(MediaType.APPLICATION_XML)
     public Response getMarkSon(@PathParam("user_id") String id,@PathParam("son_id") int n_stud,@Context UriInfo uriInfo) {
-		List< Course_ClassResponse> newListofResp = new ArrayList<Course_ClassResponse>();
-		List<Course_Class> allCourse = course_classDao.findAll();
+		List< EvaluationResponse> newListofResp = new ArrayList<EvaluationResponse>();
+		List<Evaluation> allCourse = course_classDao.findAll();
 		System.out.println("size di course class: "+ allCourse.size());
         Parent thisParent = parentDao.get(id);
         Iterator<Student> onSon =thisParent.getSon().iterator();
-        Course_ClassResponse newResp= new Course_ClassResponse();
+        EvaluationResponse newResp= new EvaluationResponse();
         	while (onSon.hasNext()) {
         		Student i = onSon.next();
         		
-        		for(Course_Class cc : allCourse) {
+        		for(Evaluation cc : allCourse) {
         		
         			System.out.println("idStud " + i.getRollNo());
         			if (i.getRollNo()==cc.getId().getStudentId().getRollNo()) {
-        				newResp=new Course_ClassResponse();
+        				newResp=new EvaluationResponse();
         				newResp.getCw().setCourseName(cc.getId().getCourseId().getCourseName());
         				newResp.getSw().setLastName(i.getLastName());
         				newResp.setMark(cc.getMark());
@@ -285,7 +285,7 @@ public class ParentResource implements Principal{
         			}
         		}
         	}
-        	 GenericEntity<List<Course_ClassResponse>> e = new GenericEntity<List<Course_ClassResponse>>(newListofResp) {};
+        	 GenericEntity<List<EvaluationResponse>> e = new GenericEntity<List<EvaluationResponse>>(newListofResp) {};
              if (newListofResp.size()>0) {
                  return Response.status(Response.Status.OK).entity(e).build();
              }

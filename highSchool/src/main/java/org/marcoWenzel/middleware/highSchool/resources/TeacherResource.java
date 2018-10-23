@@ -24,7 +24,7 @@ import org.marcoWenzel.middleware.highSchool.dao.AbstractDAO;
 import org.marcoWenzel.middleware.highSchool.dao.AppointmentDAO;
 import org.marcoWenzel.middleware.highSchool.dao.CCAssotiationDAO;
 import org.marcoWenzel.middleware.highSchool.dao.CourseDAO;
-import org.marcoWenzel.middleware.highSchool.dao.Course_ClassDAO;
+import org.marcoWenzel.middleware.highSchool.dao.EvaluationDAO;
 import org.marcoWenzel.middleware.highSchool.dao.StudentDAO;
 import org.marcoWenzel.middleware.highSchool.dao.TeacherDAO;
 import org.marcoWenzel.middleware.highSchool.dao.TimeTableDAO;
@@ -32,14 +32,14 @@ import org.marcoWenzel.middleware.highSchool.model.Appointment;
 import org.marcoWenzel.middleware.highSchool.model.Appointment_Id;
 import org.marcoWenzel.middleware.highSchool.model.Course;
 import org.marcoWenzel.middleware.highSchool.model.CourseClassAssociation;
-import org.marcoWenzel.middleware.highSchool.model.Course_Class;
+import org.marcoWenzel.middleware.highSchool.model.Evaluation;
 import org.marcoWenzel.middleware.highSchool.model.Parent;
 import org.marcoWenzel.middleware.highSchool.model.Student;
 import org.marcoWenzel.middleware.highSchool.model.Teacher;
 import org.marcoWenzel.middleware.highSchool.model.TimeTable;
 import org.marcoWenzel.middleware.highSchool.response.AppointmentResponse;
 import org.marcoWenzel.middleware.highSchool.response.CourseResponse;
-import org.marcoWenzel.middleware.highSchool.response.Course_ClassResponse;
+import org.marcoWenzel.middleware.highSchool.response.EvaluationResponse;
 import org.marcoWenzel.middleware.highSchool.response.StudentResponse;
 import org.marcoWenzel.middleware.highSchool.response.TeacherResponse;
 import org.marcoWenzel.middleware.highSchool.response.TimeTableResponse;
@@ -48,7 +48,7 @@ import org.marcoWenzel.middleware.highSchool.util.Link;
 import org.marcoWenzel.middleware.highSchool.util.Secured;
 import org.marcoWenzel.middleware.highSchool.wrapper.AppointmentWrapper;
 import org.marcoWenzel.middleware.highSchool.wrapper.CourseWrapper;
-import org.marcoWenzel.middleware.highSchool.wrapper.Course_ClassWrapper;
+import org.marcoWenzel.middleware.highSchool.wrapper.EvaluationWrapper;
 import org.marcoWenzel.middleware.highSchool.wrapper.ParentWrapper;
 import org.marcoWenzel.middleware.highSchool.wrapper.TeacherWrapper;
 @Secured({Category.Teacher})
@@ -59,7 +59,7 @@ public class TeacherResource {
 	AppointmentDAO appointmentDao = new AppointmentDAO();
 	TimeTableDAO timetableDao = new TimeTableDAO();
 	CourseDAO courseDao = new CourseDAO();
-	Course_ClassDAO course_classDao = new Course_ClassDAO();
+	EvaluationDAO course_classDao = new EvaluationDAO();
 	CCAssotiationDAO ccaDao = new CCAssotiationDAO();
 	StudentDAO studentDao=new StudentDAO();
 	@GET
@@ -276,7 +276,7 @@ public class TeacherResource {
 	@Produces(MediaType.APPLICATION_XML)
 	@Consumes(MediaType.APPLICATION_XML)
 	public Response setMarkPersonal(@PathParam("user_id") String teacherId,@PathParam("stud_id") int stud_id,
-			Course_ClassWrapper classIn,@Context UriInfo uriInfo) {
+			EvaluationWrapper classIn,@Context UriInfo uriInfo) {
 		int courseId=classIn.getCw().getIdCourse();
 		int markedSonId=classIn.getSw().getRollNo();
 		int check_courseFeasibility=0;
@@ -287,8 +287,8 @@ public class TeacherResource {
 			}
 		}
 		if (check_courseFeasibility==1) {
-			List <Course_Class> courses = course_classDao.findAll();
-			for (Course_Class cc : courses) {
+			List <Evaluation> courses = course_classDao.findAll();
+			for (Evaluation cc : courses) {
 				System.out.println(cc.getId().getCourseId().getIdCourse());
 				System.out.println(cc.getId().getStudentId().getRollNo());
 				if (cc.getId().getCourseId().getIdCourse()==courseId && 

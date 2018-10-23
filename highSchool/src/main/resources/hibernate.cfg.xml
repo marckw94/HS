@@ -32,7 +32,7 @@
  		 <mapping class="org.marcoWenzel.middleware.highSchool.model.Parent"/>
  		 <mapping class="org.marcoWenzel.middleware.highSchool.model.Course"/>
  		 <mapping class="org.marcoWenzel.middleware.highSchool.model.Teacher"/>
- 		 <mapping class="org.marcoWenzel.middleware.highSchool.model.Course_Class"/>
+ 		 <mapping class="org.marcoWenzel.middleware.highSchool.model.Evaluation"/>
  		 <mapping class="org.marcoWenzel.middleware.highSchool.model.Appointment"/>
  		 <mapping class="org.marcoWenzel.middleware.highSchool.model.Payement"/>
  		 <mapping class="org.marcoWenzel.middleware.highSchool.model.Notificatio"/>
