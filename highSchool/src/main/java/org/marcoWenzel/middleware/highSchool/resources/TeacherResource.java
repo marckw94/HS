@@ -1,6 +1,7 @@
 package org.marcoWenzel.middleware.highSchool.resources;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -21,15 +22,19 @@ import javax.ws.rs.core.UriInfo;
 
 import org.marcoWenzel.middleware.highSchool.dao.AbstractDAO;
 import org.marcoWenzel.middleware.highSchool.dao.AppointmentDAO;
+import org.marcoWenzel.middleware.highSchool.dao.CCAssotiationDAO;
 import org.marcoWenzel.middleware.highSchool.dao.CourseDAO;
 import org.marcoWenzel.middleware.highSchool.dao.Course_ClassDAO;
+import org.marcoWenzel.middleware.highSchool.dao.StudentDAO;
 import org.marcoWenzel.middleware.highSchool.dao.TeacherDAO;
 import org.marcoWenzel.middleware.highSchool.dao.TimeTableDAO;
 import org.marcoWenzel.middleware.highSchool.model.Appointment;
 import org.marcoWenzel.middleware.highSchool.model.Appointment_Id;
 import org.marcoWenzel.middleware.highSchool.model.Course;
+import org.marcoWenzel.middleware.highSchool.model.CourseClassAssociation;
 import org.marcoWenzel.middleware.highSchool.model.Course_Class;
 import org.marcoWenzel.middleware.highSchool.model.Parent;
+import org.marcoWenzel.middleware.highSchool.model.Student;
 import org.marcoWenzel.middleware.highSchool.model.Teacher;
 import org.marcoWenzel.middleware.highSchool.model.TimeTable;
 import org.marcoWenzel.middleware.highSchool.response.AppointmentResponse;
@@ -55,9 +60,11 @@ public class TeacherResource {
 	TimeTableDAO timetableDao = new TimeTableDAO();
 	CourseDAO courseDao = new CourseDAO();
 	Course_ClassDAO course_classDao = new Course_ClassDAO();
+	CCAssotiationDAO ccaDao = new CCAssotiationDAO();
+	StudentDAO studentDao=new StudentDAO();
 	@GET
 	@Produces(MediaType.APPLICATION_XML)
-	public Response getParentServices(@PathParam("user_id")String id,@Context UriInfo uriInfo) {
+	public Response getTeacherServices(@PathParam("user_id")String id,@Context UriInfo uriInfo) {
 		
 		List<Link> uris = new ArrayList<Link>();
 		String uri = uriInfo.getAbsolutePathBuilder().build().toString();
@@ -137,7 +144,7 @@ public class TeacherResource {
 	}
 	//sistemare nomenclatura
 	@GET
-	@Path("Classes")
+	@Path("Courses")
 	@Produces(MediaType.APPLICATION_XML)
     public Response  getClass(@PathParam("user_id") String id,@Context UriInfo uriInfo) {
 		List<CourseResponse> teachedClass = new ArrayList<CourseResponse>();
@@ -176,39 +183,48 @@ public class TeacherResource {
             }
     }
 
-	@Path("Classes/{class_id}/students")
+	@Path("Classes/{course_id}/students")
 	@GET
 	@Produces(MediaType.APPLICATION_XML)
-    public Response  getAllStudInClass(@PathParam("user_id") String idName,@PathParam("class_id") int id,@Context UriInfo uriInfo) {
-        	List<Course_Class> allCourse = course_classDao.findAll();
-        	Course_ClassResponse newResp = new Course_ClassResponse();
-        	List<Course_ClassResponse> listOfResp = new ArrayList<Course_ClassResponse>();
-        	for(Course_Class cc : allCourse) {
-        		int idcc= cc.getId().getCourseId().getIdCourse();
-        		if(idcc ==id) {
-        			newResp = new Course_ClassResponse();
-	        		newResp.getCw().setCourseName(cc.getId().getCourseId().getCourseName());
-	        		newResp.getCw().setIdCourse(cc.getId().getCourseId().getIdCourse());
-	        		newResp.getSw().setLastName(cc.getId().getStudentId().getLastName());
-	        		newResp.getSw().setRollNo(cc.getId().getStudentId().getRollNo());
-	        		newResp.setMark(cc.getMark());
-	        		String uri=uriInfo.getAbsolutePathBuilder().build().toString();
-	        		newResp.addLink(uri, "self", "GET");
+    public Response  getAllStudInClass(@PathParam("user_id") String idName,@PathParam("course_id") int id,@Context UriInfo uriInfo) {
+        	Teacher subject = teacherDao.get(idName);
+        	List<Integer> teachedClasses = new ArrayList<Integer>();
+        	List<CourseClassAssociation>allAssotiation=ccaDao.findAll();
+        	for(CourseClassAssociation cca:allAssotiation) {
+        		for(Course c :subject.getCourseKeep()) {
+        			if(c.getIdCourse()==cca.getPrimaryKey().getCourse_id() && c.getIdCourse()==id) {
+        					teachedClasses.add(cca.getPrimaryKey().getClass_id());
+        				}
+        			}
+        		}
+        	
+			List <Student> enrolledStud= studentDao.findAll();
+			List<StudentResponse>listOfResp = new ArrayList<StudentResponse>();
+			for (Student s:enrolledStud) {
+				for(Integer idClass: teachedClasses) {
+				if (s.getEnrolledClass().getIdClass()==idClass) {
+					StudentResponse sr= new StudentResponse();
+					sr.setRollNo(s.getRollNo());
+					sr.setName(s.getName());
+					sr.setLastName(s.getLastName());
+					String uri=uriInfo.getAbsolutePathBuilder().build().toString();
+	        		sr.addLink(uri, "self", "GET");
 	        		uri=uriInfo.getBaseUriBuilder().path(TeacherResource.class)
 	            			.resolveTemplate("user_id",idName).path("Classes")
 	            			.path(Long.toString(id)).path("students")
-	            			.path(Long.toString(newResp.getSw().getRollNo()))
+	            			.path(Long.toString(sr.getRollNo()))
 	            			.path("newMark")
 	            			.build().toString();
-	        		newResp.addLink(uri, "give evaluation", "PUT");
+	        		sr.addLink(uri, "give evaluation", "PUT");
 	        		uri=uriInfo.getBaseUriBuilder().path(TeacherResource.class)
 	        				.resolveTemplate("user_id",id).build().toString();
-	            	newResp.addLink(uri, "general services","GET");
-	        		listOfResp.add(newResp);
-        		}
-        	}
+	            	sr.addLink(uri, "general services","GET");
+	        		listOfResp.add(sr);
+				}
+				}
+			}
         	System.out.println(listOfResp.size());
-        	GenericEntity<List<Course_ClassResponse>> e = new GenericEntity<List<Course_ClassResponse>>(listOfResp) {};
+        	GenericEntity<List<StudentResponse>> e = new GenericEntity<List<StudentResponse>>(listOfResp) {};
         	if (listOfResp.size()>0) {
                 return Response.status(Response.Status.OK).entity(e).build();
             }

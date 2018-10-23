@@ -24,8 +24,7 @@ public class Course  implements Serializable {
 	private String courseName;
 	private String courseDescription;
 	private String classRoom;
-	@ManyToOne
-	@JoinColumn(name="TEACHER_ID")
+	
 	private Teacher teacher;
 	//@ManyToOne()
 	//@JoinColumn(name="CLASS_ID")
@@ -44,7 +43,8 @@ public class Course  implements Serializable {
 	public void setCourseDescription(String courseDescription) {
 		this.courseDescription = courseDescription;
 	}
-	
+	@ManyToOne
+	@JoinColumn(name="TEACHER_ID")
 	public Teacher getTeacher() {
 		return teacher;
 	}
