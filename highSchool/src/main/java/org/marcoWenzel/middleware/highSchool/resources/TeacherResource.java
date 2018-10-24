@@ -33,6 +33,7 @@ import org.marcoWenzel.middleware.highSchool.model.Appointment_Id;
 import org.marcoWenzel.middleware.highSchool.model.Course;
 import org.marcoWenzel.middleware.highSchool.model.CourseClassAssociation;
 import org.marcoWenzel.middleware.highSchool.model.Evaluation;
+import org.marcoWenzel.middleware.highSchool.model.Evaluation_Id;
 import org.marcoWenzel.middleware.highSchool.model.Parent;
 import org.marcoWenzel.middleware.highSchool.model.Student;
 import org.marcoWenzel.middleware.highSchool.model.Teacher;
@@ -271,53 +272,60 @@ public class TeacherResource {
 	        }
 	}
     
-    @PUT
-	@Path("Classes/{class_id}/students/{stud_id}/newMark")
+    @POST
+	@Path("Classes/{course_id}/students/{stud_id}/newMark")
 	@Produces(MediaType.APPLICATION_XML)
 	@Consumes(MediaType.APPLICATION_XML)
-	public Response setMarkPersonal(@PathParam("user_id") String teacherId,@PathParam("stud_id") int stud_id,
+	public Response setMarkPersonal(@PathParam("user_id") String teacherId,@PathParam("course_id") int idCourse,@PathParam("stud_id") int stud_id,
 			EvaluationWrapper classIn,@Context UriInfo uriInfo) {
-		int courseId=classIn.getCw().getIdCourse();
-		int markedSonId=classIn.getSw().getRollNo();
-		int check_courseFeasibility=0;
-		Teacher teacher = teacherDao.get(teacherId);
-		for (Course c : teacher.getCourseKeep()) {
-			if (courseId==c.getIdCourse()) {
-				check_courseFeasibility=1;
-			}
-		}
-		if (check_courseFeasibility==1) {
-			List <Evaluation> courses = course_classDao.findAll();
-			for (Evaluation cc : courses) {
-				System.out.println(cc.getId().getCourseId().getIdCourse());
-				System.out.println(cc.getId().getStudentId().getRollNo());
-				if (cc.getId().getCourseId().getIdCourse()==courseId && 
-						cc.getId().getStudentId().getRollNo()==markedSonId &&
-						stud_id==markedSonId) {
-					cc.setMark(classIn.getMark());
-					if (cc.getMark()>17) cc.setPass(true);
+    	int check_courseFeasibility=0;
+    	Teacher teacher = teacherDao.get(teacherId);
+    	for(Course keepCourse: teacher.getCourseKeep()) {
+    		if (classIn.getCw().getIdCourse()==keepCourse.getIdCourse() &&
+    				keepCourse.getIdCourse()==idCourse) {
+    			check_courseFeasibility=1;
+    		} 
+    	}
+    	
+    	Course course= courseDao.get(classIn.getCw().getIdCourse());
+    	Student stud=studentDao.get(classIn.getSw().getRollNo());
+    	if (course==null  || stud==null) {
+    		return Response.status(Response.Status.BAD_REQUEST).build();
+    	}
+    	if (check_courseFeasibility==1) {
+	    	List<CourseClassAssociation>allAssotiation=ccaDao.findAll();
+	    	for(CourseClassAssociation cca : allAssotiation) {
+	    		if(cca.getPrimaryKey().getClass_id()==stud.getEnrolledClass().getIdClass() &&
+	    				cca.getPrimaryKey().getCourse_id()==idCourse) {
+	    			Evaluation newEval= new Evaluation();
+	    			newEval.setId(new Evaluation_Id());
+	    			newEval.getId().setCourseId(course);
+	    			newEval.getId().setStudentId(stud);
+	    			newEval.setMark(classIn.getMark());
+					if (newEval.getMark()>17) newEval.setPass(true);
 					List<Link> uris = new ArrayList<Link>();
 					String uri=uriInfo.getAbsolutePathBuilder().build().toString();
-					addLinkToList(uris, uri, "self", "PUT");
+					addLinkToList(uris, uri, "self", "POST");
 					uri=uriInfo.getBaseUriBuilder().path(TeacherResource.class)
 	            			.resolveTemplate("user_id",teacherId).path("Classes")
-	            			.path(Long.toString(courseId)).path("students")
+	            			.path(Long.toString(idCourse)).path("students")
 	            			.build().toString();
 					addLinkToList(uris, uri, "see students", "GET");
 					uri=uriInfo.getBaseUriBuilder().path(TeacherResource.class)
 							.resolveTemplate("user_id",teacherId).build().toString();
 			        addLinkToList(uris, uri, "general services", "GET");
 					GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
-					if (course_classDao.update(cc)) {
+					if (course_classDao.create(newEval)) {
 			            return Response.status(Response.Status.OK).entity(e).build();
 			        }
 			        else {
 			            return Response.status(Response.Status.BAD_REQUEST).build();
 			        }
-				}
-			}
-		}
-		return Response.status(Response.Status.BAD_REQUEST).build();
+	    		}
+	    	}
+    	}
+    	return Response.status(Response.Status.BAD_REQUEST).build();
+		
 	}
     
     
