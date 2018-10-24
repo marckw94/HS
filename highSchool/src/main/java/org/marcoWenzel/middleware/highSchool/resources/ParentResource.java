@@ -56,7 +56,7 @@ import org.marcoWenzel.middleware.highSchool.wrapper.PaymentWrapper;
 import org.marcoWenzel.middleware.highSchool.wrapper.Wrapper;
 @Secured({Category.Parent})
 @Path("parent/{user_id}")
-public class ParentResource implements Principal{
+public class ParentResource{
 	ParentDAO parentDao = new ParentDAO();
 	StudentDAO studentDao = new StudentDAO();
 	EvaluationDAO course_classDao = new EvaluationDAO();
@@ -596,12 +596,4 @@ public class ParentResource implements Principal{
 		list.add(newL);
 	}
 
-	@Override
-	public String getName() {
-		
-		System.out.println(uriInfo.getBaseUri().toString());
-		
-		// TODO Auto-generated method stub
-		return null;
-	}
 }

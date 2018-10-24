@@ -21,10 +21,15 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.marcoWenzel.middleware.highSchool.dao.CCAssotiationDAO;
+import org.marcoWenzel.middleware.highSchool.dao.CourseDAO;
 import org.marcoWenzel.middleware.highSchool.dao.EvaluationDAO;
 import org.marcoWenzel.middleware.highSchool.dao.NotificationDAO;
 import org.marcoWenzel.middleware.highSchool.dao.ParentDAO;
+import org.marcoWenzel.middleware.highSchool.dao.StudentDAO;
 import org.marcoWenzel.middleware.highSchool.dao.TeacherDAO;
+import org.marcoWenzel.middleware.highSchool.model.Course;
+import org.marcoWenzel.middleware.highSchool.model.CourseClassAssociation;
 import org.marcoWenzel.middleware.highSchool.model.Evaluation;
 import org.marcoWenzel.middleware.highSchool.model.Notificatio;
 import org.marcoWenzel.middleware.highSchool.model.Notification_Id;
@@ -36,13 +41,15 @@ import org.marcoWenzel.middleware.highSchool.util.Link;
 import org.marcoWenzel.middleware.highSchool.util.Secured;
 import org.marcoWenzel.middleware.highSchool.wrapper.NotificationWrapper;
 @Secured({Category.Admin})
-@Path("Notif")
+@Path("Admin/Notif")
 public class NotificationResource {
  NotificationDAO notificationDao = new NotificationDAO();
  ParentDAO parentDao = new ParentDAO();
  TeacherDAO teacherDao = new TeacherDAO(); 
  EvaluationDAO courseClassDao = new EvaluationDAO();
- 
+ StudentDAO studentDao = new StudentDAO();
+ CCAssotiationDAO ccaDao = new CCAssotiationDAO();
+ CourseDAO courseDao = new CourseDAO();
  @POST
  @Path("newParentNotif/{parent_id}")
  @Produces(MediaType.APPLICATION_XML)
@@ -51,12 +58,13 @@ public class NotificationResource {
 		 ,@Context UriInfo uriInfo) {
 	 if (newN.getUserName() == null)
 		 return Response.status(Response.Status.BAD_REQUEST).build();
+	 int maxid=notificationDao.maxNotifid();
 	 Notificatio notification = new Notificatio();
 	 notification.setPrimaryKey(new Notification_Id());
 	 notification.setContent(newN.getContent());
 	 notification.setContentType(newN.getContentType());
 	 notification.setSendDate(newN.getSendDate());
-	 notification.getPrimaryKey().setNotificationNumber(newN.getNotificationNumber());
+	 notification.getPrimaryKey().setNotificationNumber(maxid);
 	 notification.getPrimaryKey().setUserName(newN.getUserName());
 	 List<Link> uris = new ArrayList<Link>();
 	 String uri=uriInfo.getAbsolutePathBuilder().build().toString();
@@ -80,12 +88,13 @@ public class NotificationResource {
 		 ,@Context UriInfo uriInfo) {
 	 if (newN.getUserName() == null)
 		 return Response.status(Response.Status.BAD_REQUEST).build();
+	 int maxid=notificationDao.maxNotifid();
 	 Notificatio notification = new Notificatio();
 	 notification.setPrimaryKey(new Notification_Id());
 	 notification.setContent(newN.getContent());
 	 notification.setContentType(newN.getContentType());
 	 notification.setSendDate(newN.getSendDate());
-	 notification.getPrimaryKey().setNotificationNumber(newN.getNotificationNumber());
+	 notification.getPrimaryKey().setNotificationNumber(maxid);
 	 notification.getPrimaryKey().setUserName(newN.getUserName());
 	 List<Link> uris = new ArrayList<Link>();
 	 String uri=uriInfo.getAbsolutePathBuilder().build().toString();
@@ -186,49 +195,44 @@ public class NotificationResource {
  @Produces(MediaType.APPLICATION_XML)
  public Response createParClass(@PathParam("class_id") int id,NotificationWrapper newN
 		 ,@Context UriInfo uriInfo) {
-     List<Evaluation> classes= courseClassDao.findAll();
-     Set<String> parentStudentInClass = new HashSet<String>();
-     Notificatio notification = new Notificatio();
-	 notification.setPrimaryKey(new Notification_Id());
-	 notification.setContent(newN.getContent());
-	 notification.setContentType(newN.getContentType());
-	 notification.setSendDate(newN.getSendDate());
+	 List<Student> allStudent = studentDao.findAll();
 	 List<Link> uris = new ArrayList<Link>();
 	 String uri=uriInfo.getAbsolutePathBuilder().build().toString();
-	 addLinkToList(uris, uri, "self", "POST");
-	 uri=uriInfo.getBaseUriBuilder().path(NotificationResource.class).path("ClassTeach").path(Long.toString(id))
-			 .build().toString();
-	 addLinkToList(uris, uri, "send notification to the teacher", "POST");
-     if (classes == null ) {
-         return Response.status(Response.Status.BAD_REQUEST).build();
-     }
-     for(Evaluation cc :classes) {
-    	 if(cc.getId().getCourseId().getIdCourse()==id) {
-    		 parentStudentInClass.add(cc.getId().getStudentId().getParentUsername().getUsername());
-    	 }
-     }
-     Iterator<String> onParent = parentStudentInClass.iterator();
-     int maxid=notificationDao.maxNotifid();
-     while(onParent.hasNext()) {
-    	 String gg =(String) onParent.next();
-		 System.out.println(gg);
-		 notification.getPrimaryKey().setNotificationNumber(maxid);
-		 //DA RISOLVERE: non funziiona se abbiamo due insegnanti con lo stesso cognome
-		 notification.getPrimaryKey().setUserName(gg);
-		 maxid++;
-		 uri= uriInfo.getBaseUriBuilder().path(NotificationResource.class).path("newParentNotif")
-	    		 .path(gg).build().toString();
-	     addLinkToList(uris, uri, "send specific notification", "POST");
-	     if ( !notificationDao.create(notification)) {
-	    	 return Response.status(Response.Status.BAD_REQUEST).build();
-	     }
+	 if (newN==null) {
+		 return Response.status(Response.Status.BAD_REQUEST).build();
 	 }
-     uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
+	 int maxid=notificationDao.maxNotifid();
+	 for (Student s: allStudent) {
+		 if (s.getEnrolledClass().getIdClass()==id) {
+			 
+			 System.out.println("maxid: "+ maxid);
+			 Notificatio notification = new Notificatio();
+			 notification.setPrimaryKey(new Notification_Id());
+			 notification.setContent(newN.getContent());
+			 notification.setContentType(newN.getContentType());
+			 notification.setSendDate(newN.getSendDate());
+			 notification.getPrimaryKey().setNotificationNumber(maxid);
+			 notification.getPrimaryKey().setUserName(s.getParentUsername().getUsername());
+			 
+			 addLinkToList(uris, uri, "self", "POST");
+			 uri=uriInfo.getBaseUriBuilder().path(NotificationResource.class).path("ClassTeach").path(Long.toString(id))
+					 .build().toString();
+			 addLinkToList(uris, uri, "send notification to the teacher", "POST");
+			 uri= uriInfo.getBaseUriBuilder().path(NotificationResource.class).path("newParentNotif")
+		    		 .path(s.getParentUsername().getUsername()).build().toString();
+		     addLinkToList(uris, uri, "send specific notification", "POST");
+		     
+		     if ( !notificationDao.create(notification)) {
+		    	 return Response.status(Response.Status.BAD_REQUEST).build();
+		     }
+		 }
+	 }
+	 uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
 				.build().toString();
-     addLinkToList(uris, uri, "general services", "GET");
+	 addLinkToList(uris, uri, "general services", "GET");
 	 GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
-
-     return Response.status(Response.Status.OK).entity(e).build();
+	 return Response.status(Response.Status.OK).entity(e).build();
+	
  }
  
  
@@ -238,42 +242,45 @@ public class NotificationResource {
  @Produces(MediaType.APPLICATION_XML)
  public Response createTeachClass(@PathParam("class_id") int id,NotificationWrapper newN
 		 ,@Context UriInfo uriInfo) {
-	
-	 Notificatio notification = new Notificatio();
-	 notification.setPrimaryKey(new Notification_Id());
-	 notification.setContent(newN.getContent());
-	 notification.setContentType(newN.getContentType());
-	 notification.setSendDate(newN.getSendDate());
-     List<Evaluation> classes= courseClassDao.findAll();
-     Teacher teacher = null;
-     List<Link> uris = new ArrayList<Link>();
+	 List<CourseClassAssociation>ccaList= ccaDao.findAll();
+	 List<Course>coursePerClass= new ArrayList<Course>();
+	 for(CourseClassAssociation singleCCA: ccaList) {
+		 if(singleCCA.getPrimaryKey().getClass_id()==id) {
+			 try {
+				 coursePerClass.add(courseDao.get(singleCCA.getPrimaryKey().getCourse_id()));
+			 }catch (Exception e) {
+				 return Response.status(Response.Status.BAD_REQUEST).build();
+			}
+		 }
+	 }
+	 List<Link> uris = new ArrayList<Link>();
 	 String uri=uriInfo.getAbsolutePathBuilder().build().toString();
-	 addLinkToList(uris, uri, "self", "POST");
-	 uri= uriInfo.getBaseUriBuilder().path(NotificationResource.class).path("ClassPar").path(Long.toString(id))
-			 .build().toString();
-	 addLinkToList(uris, uri, "send to interested parent", "POST");
-     if (classes == null ) {
-         return Response.status(Response.Status.BAD_REQUEST).build();
-     }
-     for(Evaluation cc :classes) {
-    	 if(cc.getId().getCourseId().getIdCourse()==id) {
-    		 teacher = cc.getId().getCourseId().getTeacher();
-    	 }
-     }
-     int maxid=notificationDao.maxNotifid(); 
-     notification.getPrimaryKey().setNotificationNumber(maxid);
-     notification.getPrimaryKey().setUserName(teacher.getSurname());
-     uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
+	 int maxid=notificationDao.maxNotifid();
+	 for(Course c : coursePerClass) {
+		 Notificatio notification = new Notificatio();
+		 notification.setPrimaryKey(new Notification_Id());
+		 notification.setContent(newN.getContent());
+		 notification.setContentType(newN.getContentType());
+		 notification.setSendDate(newN.getSendDate());
+		 addLinkToList(uris, uri, "self", "POST");
+		 uri= uriInfo.getBaseUriBuilder().path(NotificationResource.class).path("ClassPar").path(Long.toString(id))
+				 .build().toString();
+		 addLinkToList(uris, uri, "send to interested parent", "POST");
+		  notification.getPrimaryKey().setNotificationNumber(maxid);
+		  notification.getPrimaryKey().setUserName(c.getTeacher().getTeacherId());
+		  
+		  if(!notificationDao.create(notification)) {
+			  return Response.status(Response.Status.BAD_REQUEST).build();
+		  }
+	 }
+	 uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
 				.build().toString();
-     addLinkToList(uris, uri, "general services", "GET");
-     GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
-	 //DA RISOLVERE: non funziiona se abbiamo due insegnanti con lo stesso cognome
-     if ( notificationDao.create(notification)) {
-	    return Response.status(Response.Status.OK).entity(e).build();
- 	}else {
- 		return Response.status(Response.Status.BAD_REQUEST).build();
- 	}
+	 addLinkToList(uris, uri, "general services", "GET");
+  	 GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
+  	 return Response.status(Response.Status.OK).entity(e).build();
+     
  }
+ 
 	public void addLinkToList(List<Link> list,String url,String rel,String type) {
 		Link newL= new Link();
 		newL.setLink(url);

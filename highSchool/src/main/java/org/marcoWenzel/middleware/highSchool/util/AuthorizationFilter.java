@@ -30,8 +30,13 @@ public class AuthorizationFilter implements ContainerRequestFilter{
 	private UriInfo uriInfo;
 	@Override
 	public void filter(ContainerRequestContext requestContext) throws IOException {
-		String userInPath=uriInfo.getPathParameters().get("user_id").get(0);
-		System.out.println("path param: "+uriInfo.getPathParameters().get("user_id").get(0));
+		String userInPath=null;
+		System.out.println(uriInfo.getPathParameters());
+		if(uriInfo.getPathParameters().containsKey("user_id")) {
+			userInPath=uriInfo.getPathParameters().get("user_id").get(0);
+			System.out.println("path param: "+uriInfo.getPathParameters().get("user_id").get(0));
+
+		}
 		String authorizationHeader = requestContext.getHeaderString(HttpHeaders.AUTHORIZATION);
 		
 		if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
@@ -57,7 +62,7 @@ public class AuthorizationFilter implements ContainerRequestFilter{
 					requestContext.abortWith(Response.status(Response.Status.FORBIDDEN).build());
 				}
 			}
-			if (!requestedUser.equals(userInPath)) {
+			if (userInPath!=null && !requestedUser.equals(userInPath)) {
 				System.out.println("unhautorized resources");
 				requestContext.abortWith(Response.status(Response.Status.FORBIDDEN).build());
 			}

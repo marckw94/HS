@@ -8,17 +8,11 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement
 @Table
 public class NotificationWrapper {
-	private int notificationNumber;
 	private String userName;
 	private String Content;
 	private Date sendDate;
 	private String contentType;
-	public int getNotificationNumber() {
-		return notificationNumber;
-	}
-	public void setNotificationNumber(int notificationNumber) {
-		this.notificationNumber = notificationNumber;
-	}
+
 	public String getUserName() {
 		return userName;
 	}

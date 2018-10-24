@@ -25,6 +25,7 @@ import org.marcoWenzel.middleware.highSchool.dao.AppointmentDAO;
 import org.marcoWenzel.middleware.highSchool.dao.CCAssotiationDAO;
 import org.marcoWenzel.middleware.highSchool.dao.CourseDAO;
 import org.marcoWenzel.middleware.highSchool.dao.EvaluationDAO;
+import org.marcoWenzel.middleware.highSchool.dao.NotificationDAO;
 import org.marcoWenzel.middleware.highSchool.dao.StudentDAO;
 import org.marcoWenzel.middleware.highSchool.dao.TeacherDAO;
 import org.marcoWenzel.middleware.highSchool.dao.TimeTableDAO;
@@ -34,6 +35,7 @@ import org.marcoWenzel.middleware.highSchool.model.Course;
 import org.marcoWenzel.middleware.highSchool.model.CourseClassAssociation;
 import org.marcoWenzel.middleware.highSchool.model.Evaluation;
 import org.marcoWenzel.middleware.highSchool.model.Evaluation_Id;
+import org.marcoWenzel.middleware.highSchool.model.Notificatio;
 import org.marcoWenzel.middleware.highSchool.model.Parent;
 import org.marcoWenzel.middleware.highSchool.model.Student;
 import org.marcoWenzel.middleware.highSchool.model.Teacher;
@@ -41,6 +43,7 @@ import org.marcoWenzel.middleware.highSchool.model.TimeTable;
 import org.marcoWenzel.middleware.highSchool.response.AppointmentResponse;
 import org.marcoWenzel.middleware.highSchool.response.CourseResponse;
 import org.marcoWenzel.middleware.highSchool.response.EvaluationResponse;
+import org.marcoWenzel.middleware.highSchool.response.NotificationResponse;
 import org.marcoWenzel.middleware.highSchool.response.StudentResponse;
 import org.marcoWenzel.middleware.highSchool.response.TeacherResponse;
 import org.marcoWenzel.middleware.highSchool.response.TimeTableResponse;
@@ -63,6 +66,7 @@ public class TeacherResource {
 	EvaluationDAO course_classDao = new EvaluationDAO();
 	CCAssotiationDAO ccaDao = new CCAssotiationDAO();
 	StudentDAO studentDao=new StudentDAO();
+	NotificationDAO notificationDao= new NotificationDAO();
 	@GET
 	@Produces(MediaType.APPLICATION_XML)
 	public Response getTeacherServices(@PathParam("user_id")String id,@Context UriInfo uriInfo) {
@@ -417,6 +421,40 @@ public class TeacherResource {
         }
 		return null;
 	}
+	
+	@Path("Notifications")
+	@GET
+	@Produces(MediaType.APPLICATION_XML)
+   public Response  getPublicNotif(@PathParam("user_id") String id,@Context UriInfo uriInfo) {
+       	List<Notificatio>noteList = notificationDao.findAll();
+       	List<NotificationResponse> newList = new ArrayList<NotificationResponse>();
+       	for(Notificatio n : noteList) {
+       		if(n.getPrimaryKey().getUserName().equals(id)) {
+       			NotificationResponse newNot= new NotificationResponse();
+       			newNot.setNotificationNumber(n.getPrimaryKey().getNotificationNumber());
+       			newNot.setUserName(n.getPrimaryKey().getUserName());
+       			newNot.setSendDate(n.getSendDate());
+       			newNot.setContentType(n.getContentType());
+       			newNot.setContent(n.getContent());
+       			String uri= uriInfo.getAbsolutePathBuilder().build().toString();
+           		newNot.addLink(uri, "self", "GET");
+           		uri=uriInfo.getBaseUriBuilder().path(TeacherResource.class)
+	    				.resolveTemplate("user_id",id).build().toString();
+	        	newNot.addLink(uri, "general services","GET");
+       			newList.add(newNot);
+       			
+       		}
+       	}
+        GenericEntity<List<NotificationResponse>> e = new GenericEntity<List<NotificationResponse>>(newList) {};
+        if (noteList!=null) {
+            return Response.status(Response.Status.OK).entity(e).build();
+        }
+        else {
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+       	
+   }
+	
 	
 	public void addLinkToList(List<Link> list,String url,String rel,String type) {
 		Link newL= new Link();
