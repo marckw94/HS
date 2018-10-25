@@ -56,7 +56,7 @@ public class NotificationResource {
  @Consumes(MediaType.APPLICATION_XML)
  public Response createParentNotif(@PathParam("parent_id")String id,NotificationWrapper newN
 		 ,@Context UriInfo uriInfo) {
-	 if (newN.getUserName() == null)
+	 if (newN.getReceiver() == null)
 		 return Response.status(Response.Status.BAD_REQUEST).build();
 	 int maxid=notificationDao.maxid("primaryKey.notificationNumber");
 	 Notificatio notification = new Notificatio();
@@ -65,7 +65,7 @@ public class NotificationResource {
 	 notification.setContentType(newN.getContentType());
 	 notification.setSendDate(newN.getSendDate());
 	 notification.getPrimaryKey().setNotificationNumber(maxid);
-	 notification.getPrimaryKey().setUserName(newN.getUserName());
+	 notification.getPrimaryKey().setReceiver(newN.getReceiver());
 	 List<Link> uris = new ArrayList<Link>();
 	 String uri=uriInfo.getAbsolutePathBuilder().build().toString();
 	 addLinkToList(uris, uri, "self", "POST");
@@ -86,7 +86,7 @@ public class NotificationResource {
  @Consumes(MediaType.APPLICATION_XML)
  public Response createTeacherNotif(@PathParam("teacher_id")String id,NotificationWrapper newN
 		 ,@Context UriInfo uriInfo) {
-	 if (newN.getUserName() == null)
+	 if (newN.getReceiver() == null)
 		 return Response.status(Response.Status.BAD_REQUEST).build();
 	 int maxid=notificationDao.maxid("primaryKey.notificationNumber");
 	 Notificatio notification = new Notificatio();
@@ -95,7 +95,7 @@ public class NotificationResource {
 	 notification.setContentType(newN.getContentType());
 	 notification.setSendDate(newN.getSendDate());
 	 notification.getPrimaryKey().setNotificationNumber(maxid);
-	 notification.getPrimaryKey().setUserName(newN.getUserName());
+	 notification.getPrimaryKey().setReceiver(newN.getReceiver());
 	 List<Link> uris = new ArrayList<Link>();
 	 String uri=uriInfo.getAbsolutePathBuilder().build().toString();
 	 addLinkToList(uris, uri, "self", "POST");
@@ -135,7 +135,7 @@ public class NotificationResource {
      }
      
      for (Teacher t:teacher) {
-    	 notification.getPrimaryKey().setUserName(t.getSurname());
+    	 notification.getPrimaryKey().setReceiver(t.getSurname());
     	 notification.getPrimaryKey().setNotificationNumber(idNote);
 	     if ( !notificationDao.create(notification)) 
 	    	 return Response.status(Response.Status.BAD_REQUEST).build();
@@ -173,7 +173,7 @@ public class NotificationResource {
      }
      
      for (Parent p:parent) {
-    	 notification.getPrimaryKey().setUserName(p.getUsername());
+    	 notification.getPrimaryKey().setReceiver(p.getUsername());
     	 notification.getPrimaryKey().setNotificationNumber(idNote);
 	     if ( !notificationDao.create(notification)) 
 	    	 return Response.status(Response.Status.BAD_REQUEST).build();
@@ -212,7 +212,7 @@ public class NotificationResource {
 			 notification.setContentType(newN.getContentType());
 			 notification.setSendDate(newN.getSendDate());
 			 notification.getPrimaryKey().setNotificationNumber(maxid);
-			 notification.getPrimaryKey().setUserName(s.getParentUsername().getUsername());
+			 notification.getPrimaryKey().setReceiver(s.getParentUsername().getUsername());
 			 
 			 addLinkToList(uris, uri, "self", "POST");
 			 uri=uriInfo.getBaseUriBuilder().path(NotificationResource.class).path("ClassTeach").path(Long.toString(id))
@@ -267,7 +267,7 @@ public class NotificationResource {
 				 .build().toString();
 		 addLinkToList(uris, uri, "send to interested parent", "POST");
 		  notification.getPrimaryKey().setNotificationNumber(maxid);
-		  notification.getPrimaryKey().setUserName(c.getTeacher().getTeacherId());
+		  notification.getPrimaryKey().setReceiver(c.getTeacher().getTeacherId());
 		  
 		  if(!notificationDao.create(notification)) {
 			  return Response.status(Response.Status.BAD_REQUEST).build();

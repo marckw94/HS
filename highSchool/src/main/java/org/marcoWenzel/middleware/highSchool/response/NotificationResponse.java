@@ -16,7 +16,7 @@ public class NotificationResponse {
 		this.links = links;
 	}
 	private int notificationNumber;
-	private String userName;
+	private String receiver;
 	private String Content;
 	private Date sendDate;
 	private String contentType;
@@ -27,11 +27,11 @@ public class NotificationResponse {
 	public void setNotificationNumber(int notificationNumber) {
 		this.notificationNumber = notificationNumber;
 	}
-	public String getUserName() {
-		return userName;
+	public String getReceiver() {
+		return receiver;
 	}
-	public void setUserName(String userName) {
-		this.userName = userName;
+	public void setReceiver(String userName) {
+		this.receiver = userName;
 	}
 	public String getContent() {
 		return Content;

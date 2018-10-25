@@ -428,10 +428,10 @@ public class TeacherResource {
        	List<Notificatio>noteList = notificationDao.findAll();
        	List<NotificationResponse> newList = new ArrayList<NotificationResponse>();
        	for(Notificatio n : noteList) {
-       		if(n.getPrimaryKey().getUserName().equals(id)) {
+       		if(n.getPrimaryKey().getReceiver().equals(id)) {
        			NotificationResponse newNot= new NotificationResponse();
        			newNot.setNotificationNumber(n.getPrimaryKey().getNotificationNumber());
-       			newNot.setUserName(n.getPrimaryKey().getUserName());
+       			newNot.setReceiver(n.getPrimaryKey().getReceiver());
        			newNot.setSendDate(n.getSendDate());
        			newNot.setContentType(n.getContentType());
        			newNot.setContent(n.getContent());

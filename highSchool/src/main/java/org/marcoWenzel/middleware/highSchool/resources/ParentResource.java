@@ -521,10 +521,10 @@ public class ParentResource{
        	List<Notificatio>noteList = notificationDao.findAll();
        	List<NotificationResponse> newList = new ArrayList<NotificationResponse>();
        	for(Notificatio n : noteList) {
-       		if(n.getPrimaryKey().getUserName().equals(id) && n.getContentType().equals("PUBLIC")) {
+       		if(n.getPrimaryKey().getReceiver().equals(id) && n.getContentType().equals("PUBLIC")) {
        			NotificationResponse newNot= new NotificationResponse();
        			newNot.setNotificationNumber(n.getPrimaryKey().getNotificationNumber());
-       			newNot.setUserName(n.getPrimaryKey().getUserName());
+       			newNot.setReceiver(n.getPrimaryKey().getReceiver());
        			newNot.setSendDate(n.getSendDate());
        			newNot.setContentType(n.getContentType());
        			newNot.setContent(n.getContent());
@@ -560,10 +560,10 @@ public class ParentResource{
        	System.out.println(id);
        	List<NotificationResponse> newList = new ArrayList<NotificationResponse>();
        	for(Notificatio n : noteList) {
-       		if(n.getPrimaryKey().getUserName().equals(id) && n.getContentType().equals("PRIVATE")) {
+       		if(n.getPrimaryKey().getReceiver().equals(id) && n.getContentType().equals("PRIVATE")) {
        			NotificationResponse newNot= new NotificationResponse();
        			newNot.setNotificationNumber(n.getPrimaryKey().getNotificationNumber());
-       			newNot.setUserName(n.getPrimaryKey().getUserName());
+       			newNot.setReceiver(n.getPrimaryKey().getReceiver());
        			newNot.setSendDate(n.getSendDate());
        			newNot.setContentType(n.getContentType());
        			newNot.setContent(n.getContent());
