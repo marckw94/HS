@@ -3,6 +3,7 @@ package org.marcoWenzel.middleware.highSchool.resources;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashSet;
@@ -50,6 +51,8 @@ public class NotificationResource {
  StudentDAO studentDao = new StudentDAO();
  CCAssotiationDAO ccaDao = new CCAssotiationDAO();
  CourseDAO courseDao = new CourseDAO();
+ Calendar cal = Calendar.getInstance();
+ SimpleDateFormat sdf = new SimpleDateFormat("YYYY-MM-DD HH:mm:ss");
  @POST
  @Path("newParentNotif/{parent_id}")
  @Produces(MediaType.APPLICATION_XML)
@@ -63,9 +66,12 @@ public class NotificationResource {
 	 notification.setPrimaryKey(new Notification_Id());
 	 notification.setContent(newN.getContent());
 	 notification.setContentType(newN.getContentType());
-	 notification.setSendDate(newN.getSendDate());
+	 notification.setSendDate(cal.getTime());
 	 notification.getPrimaryKey().setNotificationNumber(maxid);
-	 notification.getPrimaryKey().setReceiver(newN.getReceiver());
+	 if (newN.getReceiver().equals(id))
+		 notification.getPrimaryKey().setReceiver(newN.getReceiver());
+	 else
+		 return Response.status(Response.Status.BAD_REQUEST).build();
 	 List<Link> uris = new ArrayList<Link>();
 	 String uri=uriInfo.getAbsolutePathBuilder().build().toString();
 	 addLinkToList(uris, uri, "self", "POST");
@@ -93,9 +99,13 @@ public class NotificationResource {
 	 notification.setPrimaryKey(new Notification_Id());
 	 notification.setContent(newN.getContent());
 	 notification.setContentType(newN.getContentType());
-	 notification.setSendDate(newN.getSendDate());
+	 notification.setSendDate(cal.getTime());
 	 notification.getPrimaryKey().setNotificationNumber(maxid);
 	 notification.getPrimaryKey().setReceiver(newN.getReceiver());
+	 if (newN.getReceiver().equals(id))
+		 notification.getPrimaryKey().setReceiver(newN.getReceiver());
+	 else
+		 return Response.status(Response.Status.BAD_REQUEST).build();
 	 List<Link> uris = new ArrayList<Link>();
 	 String uri=uriInfo.getAbsolutePathBuilder().build().toString();
 	 addLinkToList(uris, uri, "self", "POST");
@@ -116,11 +126,13 @@ public class NotificationResource {
  @Consumes(MediaType.APPLICATION_XML)
  @Produces(MediaType.APPLICATION_XML)
  public Response createAllTeacher(NotificationWrapper newN,@Context UriInfo uriInfo) {
+	 if (!newN.getReceiver().equals("teachers"))
+		 return Response.status(Response.Status.BAD_REQUEST).build();
 	 Notificatio notification = new Notificatio();
 	 notification.setPrimaryKey(new Notification_Id());
 	 notification.setContent(newN.getContent());
 	 notification.setContentType(newN.getContentType());
-	 notification.setSendDate(newN.getSendDate());
+	 notification.setSendDate(cal.getTime());
 	System.out.println("ok");
 	 int idNote=notificationDao.maxid("primaryKey.notificationNumber");
 	
@@ -157,11 +169,13 @@ public class NotificationResource {
  @Consumes(MediaType.APPLICATION_XML)
  @Produces(MediaType.APPLICATION_XML)
  public Response createAllPar(NotificationWrapper newN,@Context UriInfo uriInfo) {
+	 if (!newN.getReceiver().equals("parents"))
+		 return Response.status(Response.Status.BAD_REQUEST).build();
 	 Notificatio notification = new Notificatio();
 	 notification.setPrimaryKey(new Notification_Id());
 	 notification.setContent(newN.getContent());
 	 notification.setContentType(newN.getContentType());
-	 notification.setSendDate(newN.getSendDate());
+	 notification.setSendDate(cal.getTime());
 	 int idNote=notificationDao.maxid("primaryKey.notificationNumber");
 	 List<Parent> parent= parentDao.findAll();
 	 List<Link> uris = new ArrayList<Link>();
@@ -195,12 +209,11 @@ public class NotificationResource {
  @Produces(MediaType.APPLICATION_XML)
  public Response createParClass(@PathParam("class_id") int id,NotificationWrapper newN
 		 ,@Context UriInfo uriInfo) {
+	 if (!newN.getReceiver().equals("class"))
+		 return Response.status(Response.Status.BAD_REQUEST).build();
 	 List<Student> allStudent = studentDao.findAll();
 	 List<Link> uris = new ArrayList<Link>();
 	 String uri=uriInfo.getAbsolutePathBuilder().build().toString();
-	 if (newN==null) {
-		 return Response.status(Response.Status.BAD_REQUEST).build();
-	 }
 	 int maxid=notificationDao.maxid("primaryKey.notificationNumber");
 	 for (Student s: allStudent) {
 		 if (s.getEnrolledClass().getIdClass()==id) {
@@ -210,7 +223,7 @@ public class NotificationResource {
 			 notification.setPrimaryKey(new Notification_Id());
 			 notification.setContent(newN.getContent());
 			 notification.setContentType(newN.getContentType());
-			 notification.setSendDate(newN.getSendDate());
+			 notification.setSendDate(cal.getTime());
 			 notification.getPrimaryKey().setNotificationNumber(maxid);
 			 notification.getPrimaryKey().setReceiver(s.getParentUsername().getUsername());
 			 
@@ -242,6 +255,8 @@ public class NotificationResource {
  @Produces(MediaType.APPLICATION_XML)
  public Response createTeachClass(@PathParam("class_id") int id,NotificationWrapper newN
 		 ,@Context UriInfo uriInfo) {
+	 if (!newN.getReceiver().equals("class"))
+		 return Response.status(Response.Status.BAD_REQUEST).build();
 	 List<CourseClassAssociation>ccaList= ccaDao.findAll();
 	 List<Course>coursePerClass= new ArrayList<Course>();
 	 for(CourseClassAssociation singleCCA: ccaList) {
@@ -261,7 +276,7 @@ public class NotificationResource {
 		 notification.setPrimaryKey(new Notification_Id());
 		 notification.setContent(newN.getContent());
 		 notification.setContentType(newN.getContentType());
-		 notification.setSendDate(newN.getSendDate());
+		 notification.setSendDate(cal.getTime());
 		 addLinkToList(uris, uri, "self", "POST");
 		 uri= uriInfo.getBaseUriBuilder().path(NotificationResource.class).path("ClassPar").path(Long.toString(id))
 				 .build().toString();

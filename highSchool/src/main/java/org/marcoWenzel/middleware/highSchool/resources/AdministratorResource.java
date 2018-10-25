@@ -9,6 +9,7 @@ import java.time.format.DateTimeFormatterBuilder;
 import java.time.temporal.TemporalAccessor;
 import java.time.temporal.TemporalField;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
@@ -82,6 +83,8 @@ public class AdministratorResource {
 	PaymentDAO paymentDao = new PaymentDAO();
 	ClassDAO classDao = new ClassDAO();
 	CCAssotiationDAO ccaDao = new CCAssotiationDAO();
+	Calendar cal = Calendar.getInstance();
+    SimpleDateFormat sdf = new SimpleDateFormat("YYYY-MM-DD HH:mm:ss");
 	@GET 
 	@Path("allCourses")
 	@Produces(MediaType.APPLICATION_XML)
@@ -560,7 +563,7 @@ public class AdministratorResource {
 		Payement newP = new Payement();
 		newP.setPayID(paymentDao.maxid("payID"));
 		newP.setCost(newPW.getCost());
-		newP.setNotificationDate(newPW.getNotificationDate());
+		newP.setNotificationDate(cal.getTime());
 		newP.setParentUsername(newPW.getParentUsername());
 		newP.setPayed(newP.isPayed());
 		newP.setPayementDate(newPW.getPayementDate());

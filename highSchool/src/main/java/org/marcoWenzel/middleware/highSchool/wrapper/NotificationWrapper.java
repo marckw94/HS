@@ -10,7 +10,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class NotificationWrapper {
 	private String receiver;
 	private String Content;
-	private Date sendDate;
 	private String contentType;
 
 	public String getReceiver() {
@@ -25,12 +24,7 @@ public class NotificationWrapper {
 	public void setContent(String content) {
 		Content = content;
 	}
-	public Date getSendDate() {
-		return sendDate;
-	}
-	public void setSendDate(Date sendDate) {
-		this.sendDate = sendDate;
-	}
+
 	public String getContentType() {
 		return contentType;
 	}

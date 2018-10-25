@@ -4,6 +4,7 @@ import java.security.Principal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Iterator;
@@ -63,6 +64,8 @@ public class ParentResource{
 	AppointmentDAO appointmentDao = new AppointmentDAO();
 	NotificationDAO notificationDao = new NotificationDAO();
 	PaymentDAO paymentDao = new PaymentDAO();
+	Calendar cal = Calendar.getInstance();
+    SimpleDateFormat sdf = new SimpleDateFormat("YYYY-MM-DD HH:mm:ss");
 	@Context
 	UriInfo uriInfo;
 	@GET
@@ -477,18 +480,8 @@ public class ParentResource{
     		if (p.getParentUsername().equals(pw.getParentUsername()) && p.isPayed()==false &&
     				p.getPayID()==pw.getPayID() && payId==pw.getPayID()) {
     			p.setPayed(true);
-    			GregorianCalendar c = new GregorianCalendar();
-    			SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
-    			Date now = new Date();
-    		    String strDate = sdf.format(now);
-    		    try {
-					c.setTime(sdf.parse(strDate));
-				} catch (ParseException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
     		    List<Link> uris = new ArrayList<Link>();
-    			p.setPayementDate(c.getTime());
+    			p.setPayementDate(cal.getTime());
     			String uri=uriInfo.getAbsolutePathBuilder().build().toString();
 				addLinkToList(uris, uri, "self", "PUT");
 				uri=uriInfo.getBaseUriBuilder().path(ParentResource.class)

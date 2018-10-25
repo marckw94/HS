@@ -14,7 +14,6 @@ public class PaymentWrapper {
 	private String paymentDescription;
 	private double cost;
 	private boolean isPayed;
-	private Date notificationDate;
 	private Date payementDate;
 	public PaymentWrapper() {}
 	
@@ -41,12 +40,6 @@ public class PaymentWrapper {
 	}
 	public void setPayed(boolean isPayed) {
 		this.isPayed = isPayed;
-	}
-	public Date getNotificationDate() {
-		return notificationDate;
-	}
-	public void setNotificationDate(Date notificationDate) {
-		this.notificationDate = notificationDate;
 	}
 	public Date getPayementDate() {
 		return payementDate;
