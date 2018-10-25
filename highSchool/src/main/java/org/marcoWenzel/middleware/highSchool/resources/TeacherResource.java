@@ -285,14 +285,13 @@ public class TeacherResource {
     	int check_courseFeasibility=0;
     	Teacher teacher = teacherDao.get(teacherId);
     	for(Course keepCourse: teacher.getCourseKeep()) {
-    		if (classIn.getCw().getIdCourse()==keepCourse.getIdCourse() &&
-    				keepCourse.getIdCourse()==idCourse) {
+    		if (idCourse==keepCourse.getIdCourse()) {
     			check_courseFeasibility=1;
     		} 
     	}
     	
-    	Course course= courseDao.get(classIn.getCw().getIdCourse());
-    	Student stud=studentDao.get(classIn.getSw().getRollNo());
+    	Course course= courseDao.get(idCourse);
+    	Student stud=studentDao.get(stud_id);
     	if (course==null  || stud==null) {
     		return Response.status(Response.Status.BAD_REQUEST).build();
     	}

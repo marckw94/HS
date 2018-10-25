@@ -375,7 +375,7 @@ public class AdministratorResource {
 		newStud.setName(newS.getName());
 		newStud.setLastName(newS.getLastName());
 		newStud.setParentUsername(parent);
-		newStud.setRollNo(newS.getRollNo());
+		newStud.setRollNo(studentDao.maxid("rollNo"));
 		parent.getSon().add(newStud);
 		List<Link> uris = new ArrayList<Link>();
 		String uri=uriInfo.getAbsolutePathBuilder().build().toString();
@@ -440,7 +440,7 @@ public class AdministratorResource {
 		newCourse.setClassRoom(newC.getClassRoom());
 		newCourse.setCourseDescription(newC.getCourseDescription());
 		newCourse.setCourseName(newC.getCourseName());
-		newCourse.setIdCourse(newC.getIdCourse());
+		newCourse.setIdCourse(courseDao.maxid("idCourse"));
 		List<Link> uris = new ArrayList<Link>();
 		String uri=uriInfo.getAbsolutePathBuilder().build().toString();
 		addLinkToList(uris, uri, "self", "POST");
@@ -465,7 +465,7 @@ public class AdministratorResource {
 	@Produces(MediaType.APPLICATION_XML)
 	 public Response createClass(ClassWrapper newC,@Context UriInfo uriInfo) {
 		Classes newClass = new Classes();
-		newClass.setIdClass(newC.getIdClass());
+		newClass.setIdClass(classDao.maxid("idClass"));
 		newClass.setClassName(newC.getClassName());
 		List<Link> uris = new ArrayList<Link>();
 		String uri=uriInfo.getAbsolutePathBuilder().build().toString();
@@ -555,9 +555,16 @@ public class AdministratorResource {
 	@POST
 	@Consumes(MediaType.APPLICATION_XML)
 	@Produces(MediaType.APPLICATION_XML)
-	
-	 public Response issuePayment(Payement newP,@Context UriInfo uriInfo) {
-		newP.setPayID(paymentDao.maxid());
+	 public Response issuePayment(PaymentWrapper newPW,@Context UriInfo uriInfo) {
+		
+		Payement newP = new Payement();
+		newP.setPayID(paymentDao.maxid("payID"));
+		newP.setCost(newPW.getCost());
+		newP.setNotificationDate(newPW.getNotificationDate());
+		newP.setParentUsername(newPW.getParentUsername());
+		newP.setPayed(newP.isPayed());
+		newP.setPayementDate(newPW.getPayementDate());
+		newP.setPaymentDescription(newPW.getPaymentDescription());
 		List<Link> uris = new ArrayList<Link>();
 		String uri=uriInfo.getAbsolutePathBuilder().build().toString();
 		addLinkToList(uris, uri, "self", "POST");

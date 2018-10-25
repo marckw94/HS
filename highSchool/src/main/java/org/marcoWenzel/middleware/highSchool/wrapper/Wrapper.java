@@ -8,17 +8,18 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement
 public class Wrapper {
 	
-	private int rollNo;
+	//private int rollNo;
 
 	private String name;
 
 	private String lastName;
+	/*
 	public int getRollNo() {
 		return rollNo;
 	}
 	public void setRollNo(int rollNo) {
 		this.rollNo = rollNo;
-	}
+	}*/
 	public String getName() {
 		return name;
 	}

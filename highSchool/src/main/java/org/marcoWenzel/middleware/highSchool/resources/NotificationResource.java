@@ -58,7 +58,7 @@ public class NotificationResource {
 		 ,@Context UriInfo uriInfo) {
 	 if (newN.getUserName() == null)
 		 return Response.status(Response.Status.BAD_REQUEST).build();
-	 int maxid=notificationDao.maxNotifid();
+	 int maxid=notificationDao.maxid("primaryKey.notificationNumber");
 	 Notificatio notification = new Notificatio();
 	 notification.setPrimaryKey(new Notification_Id());
 	 notification.setContent(newN.getContent());
@@ -88,7 +88,7 @@ public class NotificationResource {
 		 ,@Context UriInfo uriInfo) {
 	 if (newN.getUserName() == null)
 		 return Response.status(Response.Status.BAD_REQUEST).build();
-	 int maxid=notificationDao.maxNotifid();
+	 int maxid=notificationDao.maxid("primaryKey.notificationNumber");
 	 Notificatio notification = new Notificatio();
 	 notification.setPrimaryKey(new Notification_Id());
 	 notification.setContent(newN.getContent());
@@ -122,7 +122,7 @@ public class NotificationResource {
 	 notification.setContentType(newN.getContentType());
 	 notification.setSendDate(newN.getSendDate());
 	System.out.println("ok");
-	 int idNote = notificationDao.maxNotifid();
+	 int idNote=notificationDao.maxid("primaryKey.notificationNumber");
 	
 	 
 	 List<Teacher> teacher= teacherDao.findAll();
@@ -162,7 +162,7 @@ public class NotificationResource {
 	 notification.setContent(newN.getContent());
 	 notification.setContentType(newN.getContentType());
 	 notification.setSendDate(newN.getSendDate());
-	 int idNote = notificationDao.maxNotifid();
+	 int idNote=notificationDao.maxid("primaryKey.notificationNumber");
 	 List<Parent> parent= parentDao.findAll();
 	 List<Link> uris = new ArrayList<Link>();
 	 String uri=uriInfo.getAbsolutePathBuilder().build().toString();
@@ -201,7 +201,7 @@ public class NotificationResource {
 	 if (newN==null) {
 		 return Response.status(Response.Status.BAD_REQUEST).build();
 	 }
-	 int maxid=notificationDao.maxNotifid();
+	 int maxid=notificationDao.maxid("primaryKey.notificationNumber");
 	 for (Student s: allStudent) {
 		 if (s.getEnrolledClass().getIdClass()==id) {
 			 
@@ -255,7 +255,7 @@ public class NotificationResource {
 	 }
 	 List<Link> uris = new ArrayList<Link>();
 	 String uri=uriInfo.getAbsolutePathBuilder().build().toString();
-	 int maxid=notificationDao.maxNotifid();
+	 int maxid=notificationDao.maxid("primaryKey.notificationNumber");
 	 for(Course c : coursePerClass) {
 		 Notificatio notification = new Notificatio();
 		 notification.setPrimaryKey(new Notification_Id());

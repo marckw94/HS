@@ -78,7 +78,7 @@ public abstract class AbstractDAO<T> {
        }   
 	return maxid;  
    }
-   public int maxid() {
+   public int maxid(String field) {
 	   System.out.println("entro");
 	   Session session = null;
 	   List <Student>entities = null;
@@ -88,9 +88,15 @@ public abstract class AbstractDAO<T> {
            session = sessionFactory.openSession();
            System.out.println("bbbb");
            session.beginTransaction();
-           Query query = session.createQuery(" from " + this.clazz.getSimpleName());
-           maxid=query.list().size();
-           session.getTransaction().commit();   
+           Query query = session.createQuery("select e."+field+" from " + this.clazz.getSimpleName()+ " e order by e."+field+" DESC");
+           maxList = query.list();
+           System.out.println("okkk");
+           session.getTransaction().commit();
+           //System.out.println("maxID:"+maxList.get(0));
+           if (!maxList.isEmpty())
+        	   maxid=maxList.get(0)+1;
+           else
+        	   maxid=0;
        }
        catch (Exception exception) {
           if (session != null) {

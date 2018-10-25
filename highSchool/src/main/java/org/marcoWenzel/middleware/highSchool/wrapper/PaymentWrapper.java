@@ -10,7 +10,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement
 @Table
 public class PaymentWrapper {
-	private int payID;
 	private String parentUsername;
 	private String paymentDescription;
 	private double cost;
@@ -18,12 +17,7 @@ public class PaymentWrapper {
 	private Date notificationDate;
 	private Date payementDate;
 	public PaymentWrapper() {}
-	public int getPayID() {
-		return payID;
-	}
-	public void setPayID(int payID) {
-		this.payID = payID;
-	}
+	
 	public String getParentUsername() {
 		return parentUsername;
 	}

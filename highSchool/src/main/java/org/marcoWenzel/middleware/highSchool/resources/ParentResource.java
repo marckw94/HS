@@ -232,7 +232,7 @@ public class ParentResource{
 		Iterator<Student> childrenOf = parent.getSon().iterator();
 		while (childrenOf.hasNext()) {
 			Student s =childrenOf.next();
-			if (s.getRollNo()==sonIn.getRollNo() && rollNum==sonIn.getRollNo()) {
+			if (s.getRollNo()==rollNum) {
 				s.setLastName(sonIn.getLastName());
 				s.setName(sonIn.getName());
 				List<Link> uris = new ArrayList<Link>();
