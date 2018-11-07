@@ -9,6 +9,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import org.marcoWenzel.middleware.highSchool.util.Link;
 @XmlRootElement
 public class AppointmentResponse {
+	private int appointmentId;
 	private String parentUsername;
 	private String teacherId;
 	private Date appointmentDate;
@@ -44,5 +45,11 @@ public class AppointmentResponse {
 		newL.setRel(rel);
 		newL.setType(type);
 		links.add(newL);
+	}
+	public int getAppointmentId() {
+		return appointmentId;
+	}
+	public void setAppointmentId(int appointmentId) {
+		this.appointmentId = appointmentId;
 	}
 }

@@ -15,7 +15,7 @@ import javax.persistence.OneToMany;
 @Entity
 public class Teacher  implements Serializable {
 	@Id
-	private String  teacherSurname;
+	private String  teacherID;
 	private String password;
 	private String name;
 	private String surname;
@@ -24,13 +24,13 @@ public class Teacher  implements Serializable {
 	
 	public Teacher() {}
 	public Teacher(String teacherId) {
-		this.teacherSurname=teacherId;
+		this.teacherID=teacherId;
 	}
 	public String getTeacherId() {
-		return teacherSurname;
+		return teacherID;
 	}
 	public void setTeacherId(String teacherId) {
-		this.teacherSurname = teacherId;
+		this.teacherID = teacherId;
 	}
 	public String getName() {
 		return name;

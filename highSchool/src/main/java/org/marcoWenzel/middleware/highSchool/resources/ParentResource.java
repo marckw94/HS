@@ -34,7 +34,6 @@ import org.marcoWenzel.middleware.highSchool.dao.ParentDAO;
 import org.marcoWenzel.middleware.highSchool.dao.PaymentDAO;
 import org.marcoWenzel.middleware.highSchool.dao.StudentDAO;
 import org.marcoWenzel.middleware.highSchool.model.Appointment;
-import org.marcoWenzel.middleware.highSchool.model.Appointment_Id;
 import org.marcoWenzel.middleware.highSchool.model.Evaluation;
 import org.marcoWenzel.middleware.highSchool.model.Notificatio;
 import org.marcoWenzel.middleware.highSchool.model.Parent;
@@ -66,6 +65,7 @@ public class ParentResource{
 	PaymentDAO paymentDao = new PaymentDAO();
 	Calendar cal = Calendar.getInstance();
     SimpleDateFormat sdf = new SimpleDateFormat("YYYY-MM-DD HH:mm:ss");
+    
 	@Context
 	UriInfo uriInfo;
 	@GET
@@ -111,7 +111,8 @@ public class ParentResource{
 	@GET
 	@Produces(MediaType.APPLICATION_XML)
     public Response  getPersonalData(@PathParam("user_id") String id,@Context UriInfo uriInfo) {
-        	
+	
+		
     		Parent thisParent = parentDao.get(id);
         	ParentResponse parentInterface = new ParentResponse();
         	parentInterface.setName(thisParent.getName());
@@ -297,88 +298,109 @@ public class ParentResource{
              }
 	}
     
-    //forse da mettere opzioni nella put
+
 	@Path("appointments")
 	@GET
 	@Produces(MediaType.APPLICATION_XML)
     public Response  getAppointment(@PathParam("user_id") String id,@Context UriInfo uriInfo) {
 		
 		List< AppointmentResponse> ds = new ArrayList<AppointmentResponse>();
-        List<Appointment> apps = appointmentDao.findAll();
+		List<Appointment> apps = appointmentDao.findAll();
         for(Appointment a : apps) {
-        	if(id.equals(a.getId().getParents().getUsername())) {
-        		AppointmentResponse appResp= new AppointmentResponse();
-        		appResp.setParentUsername(a.getId().getParents().getUsername());
-        		appResp.setTeacherId(a.getId().getTeacher().getTeacherId());
-        		appResp.setAppointmentDate(a.getId().getAppointmentDate());
+        	if(id.equals(a.getParentId())) {
+        		AppointmentResponse appResp = new AppointmentResponse();
+        		appResp.setAppointmentId(a.getAppointId());
+        		appResp.setParentUsername(a.getParentId());
+        		appResp.setTeacherId(a.getTeacherId());
+        		appResp.setAppointmentDate(a.getAppointmentDate());
         		String uri= uriInfo.getAbsolutePathBuilder().build().toString();
-				appResp.addLink(uri, "self", "GET");
-				uri=uriInfo.getBaseUriBuilder().path(AppointmentResource.class)
-						.resolveTemplate("user_id",appResp.getParentUsername()).build().toString();
-				appResp.addLink(uri, "new appointment", "POST");
-				uri=uriInfo.getBaseUriBuilder().path(ParentResource.class).resolveTemplate("user_id",id).path("appointments").build().toString();
-				appResp.addLink(uri, "modify self", "PUT");
-				uri=uriInfo.getBaseUriBuilder().path(ParentResource.class)
-	    				.resolveTemplate("user_id",id).build().toString();
-	        	appResp.addLink(uri, "general services","GET");
-				ds.add(appResp);
+        		appResp.addLink(uri, "self", "GET");
+        		uri=uriInfo.getBaseUriBuilder().path(ParentResource.class).resolveTemplate("user_id", id)
+        				.path("setAppointments").path(appResp.getParentUsername()).build().toString();
+        		appResp.addLink(uri, "modify appointment", "PUT");
+        		uri=uriInfo.getBaseUriBuilder().path(AppointmentResource.class).resolveTemplate("user_id",id).build().toString();
+        		appResp.addLink(uri, "new appointment", "POST");
+        		uri=uriInfo.getBaseUriBuilder().path(ParentResource.class)
+        				.resolveTemplate("user_id",id).build().toString();
+            	appResp.addLink(uri, "general services","GET");
+        		ds.add(appResp);
         	}
         }
         GenericEntity<List<AppointmentResponse>> e = new GenericEntity<List<AppointmentResponse>>(ds) {};
-        if (apps!=null) {
+        if (ds.size()>0) {
             return Response.status(Response.Status.OK).entity(e).build();
         }
         else {
-            return Response.status(Response.Status.BAD_REQUEST).build();
+            return Response.status(Response.Status.BAD_REQUEST).entity("list empty").build();
         }
+        
     }
-	//da sistmeare appointment in toto
-	//@PAth("appointments/appointment")
-	@Path("appointments")
+	
+	//sistemaere struttura tabella appointment
 	@PUT
+	@Path("setAppointments/{appoint_id}")
 	@Consumes(MediaType.APPLICATION_XML)
 	@Produces(MediaType.APPLICATION_XML)
-    public Response  setAppointment(@PathParam("user_id") String id,AppointmentWrapper upApp,@Context UriInfo uriInfo) {
-		if (id .equals(upApp.getParentUsername())){
-			Appointment a=deleteOldApp(upApp, id);
-			if (a!=null) {
-				Appointment newApp = new Appointment();
-				newApp.setId(new Appointment_Id());
-				newApp.getId().setAppointmentDate(upApp.getAppointmentDate());
-				newApp.getId().setParents(a.getId().getParents());
-				newApp.getId().setTeacher(a.getId().getTeacher());
-				List<Link> uris = new ArrayList<Link>();
-				String uri=uriInfo.getAbsolutePathBuilder().build().toString();
-				addLinkToList(uris, uri, "self", "PUT");
-				addLinkToList(uris, uri, "see self", "GET");
-				uri=uriInfo.getBaseUriBuilder().path(ParentResource.class)
-						.resolveTemplate("user_id",id).build().toString();
-		        addLinkToList(uris, uri, "general services", "GET");
-				GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
-				if (appointmentDao.create(newApp))
-					return Response.status(Response.Status.OK).entity(e).build();
-				else
-					return Response.status(Response.Status.BAD_REQUEST).build();
-			}
+    public Response  setAppointment(@PathParam("user_id") String parentid,@PathParam("appoint_id") int appId,
+    		AppointmentWrapper upApp,@Context UriInfo uriInfo) {
+		Appointment oldApp= appointmentDao.get(appId);
+		if(appId!=upApp.getAppointmentId())
+			return Response.status(Response.Status.BAD_REQUEST).build();
+		if(oldApp==null)
+			return Response.status(Response.Status.BAD_REQUEST).build();
+		if(upApp.getParentUsername().equals(oldApp.getParentId()) && upApp.getTeacherId().equals(oldApp.getTeacherId())
+				&& upApp.getParentUsername().equals(parentid)) {
+			oldApp.setAppointmentDate(upApp.getAppointmentDate());
+			List<Link> uris = new ArrayList<Link>();
+			String uri=uriInfo.getAbsolutePathBuilder().build().toString();
+			addLinkToList(uris, uri, "self", "PUT");
+			uri=uriInfo.getBaseUriBuilder().path(ParentResource.class)
+					.resolveTemplate("user_id", parentid).path("appointments")
+					.build().toString();
+			addLinkToList(uris, uri, "see appointments", "GET");
+			uri=uriInfo.getBaseUriBuilder().path(ParentResource.class)
+					.resolveTemplate("user_id",parentid).build().toString();
+	        addLinkToList(uris, uri, "general services", "GET");
+			GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
+			if(appointmentDao.update(oldApp))
+				return Response.status(Response.Status.OK).entity(e).build();
+			else
+				 return Response.status(Response.Status.BAD_REQUEST).build();
 		}
+
 		return Response.status(Response.Status.BAD_REQUEST).build();
     }
 	
-	
-	public Appointment deleteOldApp(AppointmentWrapper oldApp,String id) {
-        List<Appointment> apps = appointmentDao.findAll();
-        //Date oldD= oldApp.getAppointmentDate();
-        String parent=oldApp.getParentUsername();
-        String teacherId=oldApp.getTeacherId();
-        for(Appointment a : apps) {
-        	if(id.equals(parent) && a.getId().getTeacher().getTeacherId().equals(teacherId)) {
-        		if (appointmentDao.delete(a)) return a;
-        		else return null;
-        	}
-        }
-		return null;
-	}
-	
+	@DELETE
+	@Path("setAppointments/{appoint_id}")
+	@Consumes(MediaType.APPLICATION_XML)
+	@Produces(MediaType.APPLICATION_XML)
+    public Response  deleteAppointment(@PathParam("user_id") String teacherid,@PathParam("appoint_id") int AppId,
+    		AppointmentWrapper upApp,@Context UriInfo uriInfo) {
+		Appointment oldApp= appointmentDao.get(AppId);
+		if(oldApp==null)
+			return Response.status(Response.Status.BAD_REQUEST).build();
+		if(upApp.getParentUsername().equals(oldApp.getParentId()) && upApp.getTeacherId().equals(oldApp.getTeacherId())
+				&& upApp.getTeacherId().equals(teacherid)) {
+			List<Link> uris = new ArrayList<Link>();
+			String uri=uriInfo.getAbsolutePathBuilder().build().toString();
+			addLinkToList(uris, uri, "self", "PUT");
+			uri=uriInfo.getBaseUriBuilder().path(TeacherResource.class)
+					.resolveTemplate("user_id", teacherid).path("appointments")
+					.build().toString();
+			addLinkToList(uris, uri, "see appointments", "GET");
+			uri=uriInfo.getBaseUriBuilder().path(TeacherResource.class)
+					.resolveTemplate("user_id",teacherid).build().toString();
+	        addLinkToList(uris, uri, "general services", "GET");
+			GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
+			if(appointmentDao.delete(oldApp))
+				return Response.status(Response.Status.OK).entity(e).build();
+			else
+				 return Response.status(Response.Status.BAD_REQUEST).build();
+		}
+
+		return Response.status(Response.Status.BAD_REQUEST).build();
+    }
 	@Path("History")
 	@GET
 	@Produces(MediaType.APPLICATION_XML)

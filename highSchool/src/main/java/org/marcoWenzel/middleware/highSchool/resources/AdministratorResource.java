@@ -85,10 +85,12 @@ public class AdministratorResource {
 	CCAssotiationDAO ccaDao = new CCAssotiationDAO();
 	Calendar cal = Calendar.getInstance();
     SimpleDateFormat sdf = new SimpleDateFormat("YYYY-MM-DD HH:mm:ss");
+   
 	@GET 
 	@Path("allCourses")
 	@Produces(MediaType.APPLICATION_XML)
 	public Response getAllClasses(@Context UriInfo uriInfo) {
+		
 		List<Course>allCourses=courseDao.findAll();
 		List <CourseResponse> crs= new ArrayList<CourseResponse>();
 		for (Course i : allCourses) {
@@ -559,7 +561,9 @@ public class AdministratorResource {
 	@Consumes(MediaType.APPLICATION_XML)
 	@Produces(MediaType.APPLICATION_XML)
 	 public Response issuePayment(PaymentWrapper newPW,@Context UriInfo uriInfo) {
-		
+
+		cal.setTime(newPW.getPayementDate());     
+		System.out.println("Week number:" + cal.get(Calendar.WEEK_OF_YEAR)); 
 		Payement newP = new Payement();
 		newP.setPayID(paymentDao.maxid("payID"));
 		newP.setCost(newPW.getCost());

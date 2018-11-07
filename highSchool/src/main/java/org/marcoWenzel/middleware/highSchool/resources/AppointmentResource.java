@@ -1,8 +1,9 @@
 package org.marcoWenzel.middleware.highSchool.resources;
 
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-
+import java.util.Calendar;
 import java.util.List;
 
 import javax.ws.rs.Consumes;
@@ -17,11 +18,13 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.marcoWenzel.middleware.highSchool.dao.AppointmentDAO;
+import org.marcoWenzel.middleware.highSchool.dao.CCAssotiationDAO;
 import org.marcoWenzel.middleware.highSchool.dao.ParentDAO;
 import org.marcoWenzel.middleware.highSchool.dao.TeacherDAO;
 import org.marcoWenzel.middleware.highSchool.model.Appointment;
-import org.marcoWenzel.middleware.highSchool.model.Appointment_Id;
+import org.marcoWenzel.middleware.highSchool.model.Classes;
 import org.marcoWenzel.middleware.highSchool.model.Course;
+import org.marcoWenzel.middleware.highSchool.model.CourseClassAssociation;
 import org.marcoWenzel.middleware.highSchool.model.Parent;
 import org.marcoWenzel.middleware.highSchool.model.Student;
 import org.marcoWenzel.middleware.highSchool.model.Teacher;
@@ -36,22 +39,60 @@ public class AppointmentResource {
 	AppointmentDAO appointmentDao = new AppointmentDAO();
 	TeacherDAO teacherDao = new TeacherDAO();
 	ParentDAO parentDao = new ParentDAO();
+	CCAssotiationDAO ccaDao = new CCAssotiationDAO();
+	Calendar cal = Calendar.getInstance();
+	SimpleDateFormat sdf = new SimpleDateFormat("YYYY-MM-DD HH:mm:ss");
+	
+	
 	@POST
     @Produces(MediaType.APPLICATION_XML)
 	@Consumes(MediaType.APPLICATION_XML)
     public Response newAppointment(@PathParam("user_id")String userId,AppointmentWrapper aw,
     		@Context UriInfo uriInfo) {
+		String parent=aw.getParentUsername();
+		String teacher=aw.getTeacherId();
+		Parent parentObj=parentDao.get(parent);
+		System.out.println("parnetUser: "+parent);
+		System.out.println("TeachrUser: "+teacher);
+		System.out.println("Path: "+userId);
+		Teacher teacherObj= teacherDao.get(teacher);
+		int validityCheck=0;
+		if (parentObj==null || teacherObj==null)
+			return Response.status(Response.Status.BAD_REQUEST).entity("wrong ids").build();
+		List<Classes>enrolledSonClass= new ArrayList<Classes>();
+		for(Student s:parentObj.getSon()) {
+			enrolledSonClass.add(s.getEnrolledClass());
+		}
+		System.out.println("classes son: "+ enrolledSonClass);
+		List<Course> courseKeepTeacher= new ArrayList<Course>();
+		List<CourseClassAssociation> ccaList = ccaDao.findAll();
+		List<Integer> courseFollowSons= new ArrayList<Integer>();
+		
+		for(CourseClassAssociation cca: ccaList) {
+			int classId=cca.getPrimaryKey().getClass_id();
+			for(Classes e : enrolledSonClass) {
+				if(classId==e.getIdClass())
+					 courseFollowSons.add(classId);
+			}	
+		}
+		System.out.println("course of sons: "+ courseFollowSons);
+		for(Course c :teacherObj.getCourseKeep()) {
+			if (courseFollowSons.contains(c.getIdCourse()))
+				validityCheck=1;
+		}
+		if (validityCheck==0)
+			return Response.status(Response.Status.BAD_REQUEST).entity("wrong assotiation").build();
+				
 		//cosi non funziona ma per testare per ora va bene,poiaggiungere i vari param...
 		Appointment newApp = new Appointment();
-		Teacher teacher = teacherDao.get(aw.getTeacherId());
-		System.out.println(teacher.getSurname());
-		Parent parent = parentDao.get(aw.getParentUsername());
-		newApp.setId(new Appointment_Id());
-		newApp.getId().setTeacher(teacher);
-		newApp.getId().setParents(parent);
-		newApp.getId().setAppointmentDate(aw.getAppointmentDate());
-		if (teacher==null || parent==null)
-			return Response.status(Response.Status.BAD_REQUEST).entity("ciao").build();
+		int maxid=appointmentDao.maxid("appointId");
+		newApp.setAppointId(maxid);
+		newApp.setParentId(parent);
+		newApp.setTeacherId(teacher);
+		if (aw.getAppointmentDate().before(cal.getTime()))
+			return Response.status(Response.Status.BAD_REQUEST).entity("wrong data").build();
+		newApp.setAppointmentDate(aw.getAppointmentDate());
+		
 	
 		List<Link> uris = new ArrayList<Link>();
 		String uri=uriInfo.getAbsolutePathBuilder().build().toString();
@@ -89,4 +130,5 @@ public class AppointmentResource {
 		newL.setType(type);
 		list.add(newL);
 	}
+	
 }

@@ -9,26 +9,52 @@ import javax.persistence.AssociationOverride;
 import javax.persistence.AssociationOverrides;
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
+import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.Table;
-@AssociationOverrides({
-	@AssociationOverride(name="primaryKey.teacher",joinColumns=@JoinColumn(name="TEACHER_ID")),
-	@AssociationOverride(name="primaryKey.parents",joinColumns=@JoinColumn(name="PARENT_USERNAME"))
-	})
+
 @Entity
 @Table(name="APPOINTMENT")
 public class Appointment  implements Serializable {
-	
-	private Appointment_Id primaryKey;
+	@Id
+	private int appointId;
+	private String teacherId;
+	private String parentId;
+	private Date appointmentDate;
 	
 	public Appointment() {}
-	@EmbeddedId
-	public Appointment_Id getId() {
-		return primaryKey;
+
+	public int getAppointId() {
+		return appointId;
 	}
 
-	public void setId(Appointment_Id id) {
-		this.primaryKey = id;
+	public void setAppointId(int appointId) {
+		this.appointId = appointId;
 	}
+
+	public String getTeacherId() {
+		return teacherId;
+	}
+
+	public void setTeacherId(String teacherId) {
+		this.teacherId = teacherId;
+	}
+
+	public String getParentId() {
+		return parentId;
+	}
+
+	public void setParentId(String parentId) {
+		this.parentId = parentId;
+	}
+
+	public Date getAppointmentDate() {
+		return appointmentDate;
+	}
+
+	public void setAppointmentDate(Date appointmentDate) {
+		this.appointmentDate = appointmentDate;
+	}
+	
 
 }
