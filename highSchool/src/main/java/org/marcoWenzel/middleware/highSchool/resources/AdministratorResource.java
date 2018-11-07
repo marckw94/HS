@@ -53,6 +53,7 @@ import org.marcoWenzel.middleware.highSchool.model.Student;
 import org.marcoWenzel.middleware.highSchool.model.Teacher;
 import org.marcoWenzel.middleware.highSchool.model.TimeTable;
 import org.marcoWenzel.middleware.highSchool.model.TimeTable_Id;
+import org.marcoWenzel.middleware.highSchool.response.ClassCourseResponse;
 import org.marcoWenzel.middleware.highSchool.response.ClassResponse;
 import org.marcoWenzel.middleware.highSchool.response.CourseResponse;
 import org.marcoWenzel.middleware.highSchool.response.ParentResponse;
@@ -110,7 +111,7 @@ public class AdministratorResource {
 		if(allCourses.size()>0) {
 			return Response.status(Response.Status.OK).entity(e).build();
 		}else {
-			return Response.status(Response.Status.BAD_REQUEST).build();
+			return Response.status(Response.Status.NO_CONTENT).build();
 		}
 	}
 	
@@ -137,7 +138,7 @@ public class AdministratorResource {
 		if(allParents.size()>0) {
 			return Response.status(Response.Status.OK).entity(e).build();
 		}else {
-			return Response.status(Response.Status.BAD_REQUEST).build();
+			return Response.status(Response.Status.NO_CONTENT).build();
 		}
 	}
 	
@@ -163,7 +164,7 @@ public class AdministratorResource {
 		if(allStudents.size()>0) {
 			return Response.status(Response.Status.OK).entity(e).build();
 		}else {
-			return Response.status(Response.Status.BAD_REQUEST).build();
+			return Response.status(Response.Status.NO_CONTENT).build();
 		}
 	}
 	
@@ -247,7 +248,8 @@ public class AdministratorResource {
 	@Produces(MediaType.APPLICATION_XML)
 	public Response enrollStud(EnrollRequest newEnroll,@Context UriInfo uriInfo) {
 		Student student = studentDao.get(newEnroll.getIdStud());
-		
+		if (student==null)
+			return Response.status(Response.Status.BAD_REQUEST).build();
 		if (student.getEnrolledClass()!=null) {
 			 return Response.status(Response.Status.BAD_REQUEST).build();
 		}
@@ -255,14 +257,6 @@ public class AdministratorResource {
 		enrollClass.setEnrolledStud(new ArrayList<Student>());
 		enrollClass.getEnrolledStud().add(student);
 		student.setEnrolledClass(enrollClass);
-		/*Course_Class enroll = new Course_Class();
-		Student student = studentDao.get(newEnroll.getSw().getRollNo());
-		Course course = courseDao.get(newEnroll.getCw().getIdCourse());
-		enroll.setId(new Course_Class_Id());
-		enroll.getId().setCourseId(course);
-		enroll.getId().setStudentId(student);
-		enroll.setMark(0);
-		enroll.setPass(false);*/
 		List<Link> uris = new ArrayList<Link>();
 		String uri=uriInfo.getAbsolutePathBuilder().build().toString();
 		addLinkToList(uris, uri, "self", "POST");
@@ -311,7 +305,7 @@ public class AdministratorResource {
 		if(studList.size()>0) {
 			return Response.status(Response.Status.OK).entity(e).build();
 		}else {
-			return Response.status(Response.Status.BAD_REQUEST).build();
+			return Response.status(Response.Status.NO_CONTENT).build();
 		}
 	}
 
@@ -333,7 +327,7 @@ public class AdministratorResource {
         addLinkToList(uris, uri, "general services", "GET");
 		GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
 		 if (loginDao.create(newLog) && administratorDao.create(newA)) {
-	            return Response.status(Response.Status.OK).entity(e).build();
+	            return Response.status(Response.Status.CREATED).entity(e).build();
 	        }
 	        else {
 	            return Response.status(Response.Status.BAD_REQUEST).build();
@@ -365,7 +359,7 @@ public class AdministratorResource {
         addLinkToList(uris, uri, "general services", "GET");
 		GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
 		if (newlog!= null && loginDao.create(newlog) && newParent!=null && parentDao.create(newParent)) {
-			 return Response.status(Response.Status.OK).entity(e).build();
+			 return Response.status(Response.Status.CREATED).entity(e).build();
 		}
 		return Response.status(Response.Status.BAD_REQUEST).build();
 	}
@@ -393,7 +387,7 @@ public class AdministratorResource {
 		GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
 
 		if(newStud!= null && studentDao.create(newStud) && parentDao.update(parent)) {
-			return Response.status(Response.Status.OK).entity(e).build();
+			return Response.status(Response.Status.CREATED).entity(e).build();
 		}
 		return Response.status(Response.Status.BAD_REQUEST).build();	
 	}
@@ -430,7 +424,7 @@ public class AdministratorResource {
 		}
 		GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
 		if (newlog!= null && loginDao.create(newlog) && newTc!=null && teacherDao.create(newTc)) {
-			 return Response.status(Response.Status.OK).entity(e).build();
+			 return Response.status(Response.Status.CREATED).entity(e).build();
 		}
 		return Response.status(Response.Status.BAD_REQUEST).build();
 	}
@@ -460,7 +454,7 @@ public class AdministratorResource {
 		}
 		GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
 		if (newCourse!= null && courseDao.create(newCourse)) {
-			 return Response.status(Response.Status.OK).entity(e).build();
+			 return Response.status(Response.Status.CREATED).entity(e).build();
 		}
 		return Response.status(Response.Status.BAD_REQUEST).build();
 	}
@@ -480,9 +474,49 @@ public class AdministratorResource {
         addLinkToList(uris, uri, "general services", "GET");
         GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
 		if(newC!=null && classDao.create(newClass)) {
-			 return Response.status(Response.Status.OK).entity(e).build();
+			 return Response.status(Response.Status.CREATED).entity(e).build();
 		}
 		return Response.status(Response.Status.BAD_REQUEST).build();
+	}
+	@Path("allClassCourse")
+	@GET
+	@Consumes(MediaType.APPLICATION_XML)
+	@Produces(MediaType.APPLICATION_XML)
+	public Response seeAssotiation(@Context UriInfo uriInfo) {
+		List <CourseClassAssociation> listCca= ccaDao.findAll();
+		List<Integer> listOfClasses = new ArrayList<Integer>();
+		List<ClassCourseResponse> ccrList = new ArrayList<ClassCourseResponse>();
+		for(CourseClassAssociation cca : listCca) {
+			if (!listOfClasses.contains(cca.getPrimaryKey().getClass_id())) 
+				listOfClasses.add(cca.getPrimaryKey().getClass_id());
+			
+		}
+		for (Integer idClass : listOfClasses ) {
+			ClassCourseResponse newResp = new ClassCourseResponse();
+			Classes c = classDao.get(idClass);
+			newResp.setIdClass(c.getIdClass());
+			Course courseSelection=null;
+			newResp.setClassName(c.getClassName());
+			newResp.setCourseList(new ArrayList<String>());
+			for (CourseClassAssociation cca : listCca) {
+				if (cca.getPrimaryKey().getClass_id()==c.getIdClass())
+					courseSelection= courseDao.get(cca.getPrimaryKey().getCourse_id());
+					newResp.getCourseList().add(courseSelection.getCourseName());
+			}
+			String uri=uriInfo.getAbsolutePathBuilder().build().toString();
+    		newResp.addLink(uri, "self", "GET");
+    		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
+    				.build().toString();
+            newResp.addLink( uri, "general services", "GET");
+            ccrList.add(newResp);
+		}
+		GenericEntity<List<ClassCourseResponse>> e = new GenericEntity<List<ClassCourseResponse>>(ccrList) {};
+		if(ccrList.size()>0) {
+			return Response.status(Response.Status.OK).entity(e).build();
+		}else {
+			return Response.status(Response.Status.NO_CONTENT).build();
+		}
+		
 	}
 	@Path("allClasses")
 	@GET
@@ -491,7 +525,6 @@ public class AdministratorResource {
 	 public Response seeClass(@Context UriInfo uriInfo) {
 		List<Classes>allC=classDao.findAll();
 		List<ClassResponse> allCResp=new ArrayList<ClassResponse>();
-		System.out.println(allC);
 		for(Classes c : allC) {
 			ClassResponse cr= new ClassResponse();
 			cr.setIdClass(c.getIdClass());
@@ -507,7 +540,7 @@ public class AdministratorResource {
 		if(allC.size()>0) {
 			return Response.status(Response.Status.OK).entity(e).build();
 		}else {
-			return Response.status(Response.Status.BAD_REQUEST).build();
+			return Response.status(Response.Status.NO_CONTENT).build();
 		}
 	}
 	@Path("newTeacherCourse/{teacher_id}/{course_id}")
@@ -552,7 +585,7 @@ public class AdministratorResource {
         addLinkToList(uris, uri, "general services", "GET");
 		GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
 		if (course!= null && teacher!= null && ccaDao.create(cca)) {
-			 return Response.status(Response.Status.OK).entity(e).build();
+			 return Response.status(Response.Status.CREATED).entity(e).build();
 		}
 		return Response.status(Response.Status.BAD_REQUEST).build();
 	}
@@ -562,14 +595,15 @@ public class AdministratorResource {
 	@Produces(MediaType.APPLICATION_XML)
 	 public Response issuePayment(PaymentWrapper newPW,@Context UriInfo uriInfo) {
 
-		cal.setTime(newPW.getPayementDate());     
-		System.out.println("Week number:" + cal.get(Calendar.WEEK_OF_YEAR)); 
+		
 		Payement newP = new Payement();
 		newP.setPayID(paymentDao.maxid("payID"));
 		newP.setCost(newPW.getCost());
 		newP.setNotificationDate(cal.getTime());
 		newP.setParentUsername(newPW.getParentUsername());
 		newP.setPayed(newP.isPayed());
+		if (newPW.getPayementDate().before(cal.getTime()))
+			return Response.status(Response.Status.BAD_REQUEST).build();
 		newP.setPayementDate(newPW.getPayementDate());
 		newP.setPaymentDescription(newPW.getPaymentDescription());
 		List<Link> uris = new ArrayList<Link>();
@@ -580,7 +614,7 @@ public class AdministratorResource {
         addLinkToList(uris, uri, "general services", "GET");
 		GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
 		if (newP !=null && paymentDao.create(newP))
-			return Response.status(Response.Status.OK).entity(e).build();
+			return Response.status(Response.Status.CREATED).entity(e).build();
 		else
 			return Response.status(Response.Status.BAD_REQUEST).build();
 	}
@@ -608,7 +642,7 @@ public class AdministratorResource {
         addLinkToList(uris, uri, "general services", "GET");
 		GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
 		 if ( timeTableDao.create(newH)) {
-	        return Response.status(Response.Status.OK).entity(e).build();
+	        return Response.status(Response.Status.CREATED).entity(e).build();
 	    }
 	    else {
 	        return Response.status(Response.Status.BAD_REQUEST).build();

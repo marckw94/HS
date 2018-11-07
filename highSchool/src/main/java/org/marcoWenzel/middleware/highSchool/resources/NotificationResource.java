@@ -82,7 +82,7 @@ public class NotificationResource {
      addLinkToList(uris, uri, "general services", "GET");
 	 GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
 	 if(newN != null &&  notificationDao.create(notification)){
-		 return Response.status(Response.Status.OK).entity(e).build();
+		 return Response.status(Response.Status.CREATED).entity(e).build();
 	 }else
 		 return Response.status(Response.Status.BAD_REQUEST).build();
  }
@@ -116,7 +116,7 @@ public class NotificationResource {
      addLinkToList(uris, uri, "general services", "GET");
 	 GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
 	 if(newN != null &&  notificationDao.create(notification)){
-		 return Response.status(Response.Status.OK).entity(e).build();
+		 return Response.status(Response.Status.CREATED).entity(e).build();
 	 }else
 		 return Response.status(Response.Status.BAD_REQUEST).build();
  }
@@ -161,7 +161,7 @@ public class NotificationResource {
 	 }
 	 GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
 
-     return Response.status(Response.Status.OK).entity(e).build();
+     return Response.status(Response.Status.CREATED).entity(e).build();
  }
  
  @Path("allPar")
@@ -201,7 +201,7 @@ public class NotificationResource {
 	 }
 	 GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
 
-     return Response.status(Response.Status.OK).entity(e).build();
+     return Response.status(Response.Status.CREATED).entity(e).build();
  }
  @Path("ClassPar/{class_id}")
  @POST
@@ -244,7 +244,7 @@ public class NotificationResource {
 				.build().toString();
 	 addLinkToList(uris, uri, "general services", "GET");
 	 GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
-	 return Response.status(Response.Status.OK).entity(e).build();
+	 return Response.status(Response.Status.CREATED).entity(e).build();
 	
  }
  
@@ -292,7 +292,7 @@ public class NotificationResource {
 				.build().toString();
 	 addLinkToList(uris, uri, "general services", "GET");
   	 GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
-  	 return Response.status(Response.Status.OK).entity(e).build();
+  	 return Response.status(Response.Status.CREATED).entity(e).build();
      
  }
  

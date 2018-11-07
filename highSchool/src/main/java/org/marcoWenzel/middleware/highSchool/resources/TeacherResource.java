@@ -155,6 +155,8 @@ public class TeacherResource {
     public Response  getClass(@PathParam("user_id") String id,@Context UriInfo uriInfo) {
 		List<CourseResponse> teachedClass = new ArrayList<CourseResponse>();
         	Teacher thisTeacher = teacherDao.get(id);
+        	if (!thisTeacher.getTeacherId().equals(id)) 
+        		return Response.status(Response.Status.BAD_REQUEST).build();
         	Iterator<Course> onCourse =thisTeacher.getCourseKeep().iterator();
         	while (onCourse.hasNext()) {
         		Course i = onCourse.next();
@@ -181,11 +183,11 @@ public class TeacherResource {
         		teachedClass.add(newClass);
         	}
         	GenericEntity<List<CourseResponse>> e = new GenericEntity<List<CourseResponse>>(teachedClass) {};
-        	if (thisTeacher.getTeacherId().equals(id)) {
+        	if (!teachedClass.isEmpty()) {
                 return Response.status(Response.Status.OK).entity(e).build();
             }
             else {
-                return Response.status(Response.Status.BAD_REQUEST).build();
+                return Response.status(Response.Status.NO_CONTENT).build();
             }
     }
 
@@ -229,13 +231,12 @@ public class TeacherResource {
 				}
 				}
 			}
-        	System.out.println(listOfResp.size());
         	GenericEntity<List<StudentResponse>> e = new GenericEntity<List<StudentResponse>>(listOfResp) {};
         	if (listOfResp.size()>0) {
                 return Response.status(Response.Status.OK).entity(e).build();
             }
             else {
-                return Response.status(Response.Status.BAD_REQUEST).entity("list empty").build();
+                return Response.status(Response.Status.NO_CONTENT).build();
             }
     }
 //potrebbe mancare metodo di visione singolare dei corsi e/o degli studenti	
@@ -273,7 +274,7 @@ public class TeacherResource {
 	            return Response.status(Response.Status.OK).entity(e).build();
 	        }
 	        else {
-	            return Response.status(Response.Status.BAD_REQUEST).entity("list empty").build();
+	            return Response.status(Response.Status.NO_CONTENT).build();
 	        }
 	}
     
@@ -320,7 +321,7 @@ public class TeacherResource {
 			        addLinkToList(uris, uri, "general services", "GET");
 					GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
 					if (course_classDao.create(newEval)) {
-			            return Response.status(Response.Status.OK).entity(e).build();
+			            return Response.status(Response.Status.CREATED).entity(e).build();
 			        }
 			        else {
 			            return Response.status(Response.Status.BAD_REQUEST).build();
@@ -365,7 +366,7 @@ public class TeacherResource {
             return Response.status(Response.Status.OK).entity(e).build();
         }
         else {
-            return Response.status(Response.Status.BAD_REQUEST).entity("list empty").build();
+            return Response.status(Response.Status.NO_CONTENT).build();
         }
         
     }
@@ -439,6 +440,8 @@ public class TeacherResource {
 	@Produces(MediaType.APPLICATION_XML)
    public Response  getPublicNotif(@PathParam("user_id") String id,@Context UriInfo uriInfo) {
        	List<Notificatio>noteList = notificationDao.findAll();
+       	if (noteList==null)
+            return Response.status(Response.Status.BAD_REQUEST).build();
        	List<NotificationResponse> newList = new ArrayList<NotificationResponse>();
        	for(Notificatio n : noteList) {
        		if(n.getPrimaryKey().getReceiver().equals(id)) {
@@ -458,7 +461,7 @@ public class TeacherResource {
        		}
        	}
         GenericEntity<List<NotificationResponse>> e = new GenericEntity<List<NotificationResponse>>(newList) {};
-        if (noteList!=null) {
+        if (!newList.isEmpty()) {
             return Response.status(Response.Status.OK).entity(e).build();
         }
         else {

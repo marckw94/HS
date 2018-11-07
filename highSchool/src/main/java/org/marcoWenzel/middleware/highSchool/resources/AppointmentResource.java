@@ -116,7 +116,7 @@ public class AppointmentResource {
 		}
 		GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
 		 if (appointmentDao.create(newApp)) {
-	            return Response.status(Response.Status.OK).entity(e).build();
+	            return Response.status(Response.Status.CREATED).entity(e).build();
         }
         else {
             return Response.status(Response.Status.BAD_REQUEST).entity("eee").build();

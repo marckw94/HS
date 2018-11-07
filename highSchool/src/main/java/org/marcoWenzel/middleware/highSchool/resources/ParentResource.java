@@ -52,6 +52,7 @@ import org.marcoWenzel.middleware.highSchool.wrapper.AppointmentWrapper;
 import org.marcoWenzel.middleware.highSchool.wrapper.EvaluationWrapper;
 import org.marcoWenzel.middleware.highSchool.wrapper.NotificationWrapper;
 import org.marcoWenzel.middleware.highSchool.wrapper.ParentWrapper;
+import org.marcoWenzel.middleware.highSchool.wrapper.PayRequest;
 import org.marcoWenzel.middleware.highSchool.wrapper.PaymentWrapper;
 import org.marcoWenzel.middleware.highSchool.wrapper.Wrapper;
 @Secured({Category.Parent})
@@ -171,6 +172,8 @@ public class ParentResource{
 		List<StudentResponse> studentInterfaces = new ArrayList<StudentResponse>();
     	Parent thisParent = parentDao.get(id);
     	Iterator<Student> onSon =thisParent.getSon().iterator();
+    	if (!thisParent.getUsername().equals(id)) 
+    		return Response.status(Response.Status.BAD_REQUEST).build();
     	while (onSon.hasNext()) {
     		Student i = onSon.next();
     		StudentResponse studentInterface = new StudentResponse();
@@ -185,11 +188,11 @@ public class ParentResource{
     		studentInterfaces.add(studentInterface);
     	}
     	GenericEntity<List<StudentResponse>> e = new GenericEntity<List<StudentResponse>>(studentInterfaces) {};
-    	if (thisParent.getUsername().equals(id)) {
+    	if (!studentInterfaces.isEmpty()) {
             return Response.status(Response.Status.OK).entity(e).build();
         }
         else {
-            return Response.status(Response.Status.BAD_REQUEST).build();
+            return Response.status(Response.Status.NO_CONTENT).build();
         }
     }
 	
@@ -258,7 +261,6 @@ public class ParentResource{
 		return Response.status(Response.Status.BAD_REQUEST).build();	 
 	}
 	
-	//DA CONTROLLARE
 	@Path("son/{son_id}/marks")
 	@GET
 	@Produces(MediaType.APPLICATION_XML)
@@ -294,7 +296,7 @@ public class ParentResource{
                  return Response.status(Response.Status.OK).entity(e).build();
              }
              else {
-                 return Response.status(Response.Status.BAD_REQUEST).entity("list empty").build();
+                 return Response.status(Response.Status.NO_CONTENT).build();
              }
 	}
     
@@ -331,7 +333,7 @@ public class ParentResource{
             return Response.status(Response.Status.OK).entity(e).build();
         }
         else {
-            return Response.status(Response.Status.BAD_REQUEST).entity("list empty").build();
+            return Response.status(Response.Status.NO_CONTENT).build();
         }
         
     }
@@ -434,11 +436,11 @@ public class ParentResource{
     		}
     	}
         GenericEntity<List<PaymentResponse>> e = new GenericEntity<List<PaymentResponse>>(newDs) {};
-        if (ds!=null) {
+        if (!newDs.isEmpty()) {
             return Response.status(Response.Status.OK).entity(e).build();
         }
         else {
-            return Response.status(Response.Status.BAD_REQUEST).build();
+            return Response.status(Response.Status.NO_CONTENT).build();
         }
     
 	}
@@ -478,11 +480,11 @@ public class ParentResource{
     		}
     	}
         GenericEntity<List<PaymentResponse>> e = new GenericEntity<List<PaymentResponse>>(newDs) {};
-        if (ds!=null) {
+        if (!newDs.isEmpty()) {
             return Response.status(Response.Status.OK).entity(e).build();
         }
         else {
-            return Response.status(Response.Status.BAD_REQUEST).build();
+            return Response.status(Response.Status.NO_CONTENT).build();
         }
     	
     }
@@ -493,7 +495,7 @@ public class ParentResource{
 	@Consumes(MediaType.APPLICATION_XML)
 	@Produces(MediaType.APPLICATION_XML)
     public Response  setPay(@PathParam("user_id") String id,@PathParam("pay_id") int payId,
-    		Payement pw,@Context UriInfo uriInfo) {
+    		PayRequest pw,@Context UriInfo uriInfo) {
 		List<Payement> ds = new ArrayList<Payement>();
 		//poi sostituire con un metodo abstract che ritorna List<Payemnt>
 		ds=paymentDao.findAll();
@@ -556,11 +558,11 @@ public class ParentResource{
        		}
        	}
         GenericEntity<List<NotificationResponse>> e = new GenericEntity<List<NotificationResponse>>(newList) {};
-        if (noteList!=null) {
+        if (!newList.isEmpty()) {
             return Response.status(Response.Status.OK).entity(e).build();
         }
         else {
-            return Response.status(Response.Status.BAD_REQUEST).build();
+            return Response.status(Response.Status.NO_CONTENT).build();
         }
        	
    }
@@ -595,11 +597,11 @@ public class ParentResource{
        		}
        	}
         GenericEntity<List<NotificationResponse>> e = new GenericEntity<List<NotificationResponse>>(newList) {};
-        if (noteList!=null) {
+        if (!newList.isEmpty()) {
             return Response.status(Response.Status.OK).entity(e).build();
         }
         else {
-            return Response.status(Response.Status.BAD_REQUEST).build();
+            return Response.status(Response.Status.NO_CONTENT).build();
         }
        	
    }
