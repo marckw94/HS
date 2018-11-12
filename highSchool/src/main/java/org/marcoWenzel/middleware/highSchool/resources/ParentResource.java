@@ -26,6 +26,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.eclipse.persistence.exceptions.i18n.DatabaseExceptionResource;
 import org.hibernate.engine.transaction.jta.platform.internal.SynchronizationRegistryBasedSynchronizationStrategy;
 import org.marcoWenzel.middleware.highSchool.dao.AppointmentDAO;
 import org.marcoWenzel.middleware.highSchool.dao.EvaluationDAO;
@@ -33,6 +34,8 @@ import org.marcoWenzel.middleware.highSchool.dao.NotificationDAO;
 import org.marcoWenzel.middleware.highSchool.dao.ParentDAO;
 import org.marcoWenzel.middleware.highSchool.dao.PaymentDAO;
 import org.marcoWenzel.middleware.highSchool.dao.StudentDAO;
+import org.marcoWenzel.middleware.highSchool.exception.DataNotFoundException;
+import org.marcoWenzel.middleware.highSchool.exception.NoContentException;
 import org.marcoWenzel.middleware.highSchool.model.Appointment;
 import org.marcoWenzel.middleware.highSchool.model.Evaluation;
 import org.marcoWenzel.middleware.highSchool.model.Notificatio;
@@ -133,8 +136,8 @@ public class ParentResource{
 	            return Response.status(Response.Status.OK).entity(parentInterface).build();
 	        }
 	        else {
-	            return Response.status(Response.Status.BAD_REQUEST).build();
-	        }
+	        	 throw new DataNotFoundException();
+	        	 }
         
     }
 //triggerare nel caso di password	
@@ -160,8 +163,8 @@ public class ParentResource{
 	            return Response.status(Response.Status.OK).entity(e).build();
 	        }
 	        else {
-	            return Response.status(Response.Status.BAD_REQUEST).build();
-	        }
+	        	 throw new DataNotFoundException();
+	        	 }
 	}
 	
 	@GET
@@ -173,7 +176,7 @@ public class ParentResource{
     	Parent thisParent = parentDao.get(id);
     	Iterator<Student> onSon =thisParent.getSon().iterator();
     	if (!thisParent.getUsername().equals(id)) 
-    		return Response.status(Response.Status.BAD_REQUEST).build();
+    		 throw new DataNotFoundException();
     	while (onSon.hasNext()) {
     		Student i = onSon.next();
     		StudentResponse studentInterface = new StudentResponse();
@@ -192,8 +195,7 @@ public class ParentResource{
             return Response.status(Response.Status.OK).entity(e).build();
         }
         else {
-            return Response.status(Response.Status.NO_CONTENT).build();
-        }
+        	throw new NoContentException();        }
     }
 	
 	@GET
@@ -226,7 +228,7 @@ public class ParentResource{
             return Response.status(Response.Status.OK).entity(studentInterface).build();
         }
         else {
-            return Response.status(Response.Status.BAD_REQUEST).build();
+             throw new DataNotFoundException();
         }
     }
 	@PUT
@@ -254,12 +256,12 @@ public class ParentResource{
 		            return Response.status(Response.Status.OK).entity(e).build();
 		        }
 		        else {
-		            return Response.status(Response.Status.BAD_REQUEST).build();
-		        }
+		        	 throw new DataNotFoundException();
+		        	 }
 			}
 		}
-		return Response.status(Response.Status.BAD_REQUEST).build();	 
-	}
+		 throw new DataNotFoundException();
+		 }
 	
 	@Path("son/{son_id}/marks")
 	@GET
@@ -296,8 +298,8 @@ public class ParentResource{
                  return Response.status(Response.Status.OK).entity(e).build();
              }
              else {
-                 return Response.status(Response.Status.NO_CONTENT).build();
-             }
+            	 throw new NoContentException();
+            	 }
 	}
     
 
@@ -333,8 +335,8 @@ public class ParentResource{
             return Response.status(Response.Status.OK).entity(e).build();
         }
         else {
-            return Response.status(Response.Status.NO_CONTENT).build();
-        }
+        	throw new NoContentException();
+        	}
         
     }
 	
@@ -347,9 +349,9 @@ public class ParentResource{
     		AppointmentWrapper upApp,@Context UriInfo uriInfo) {
 		Appointment oldApp= appointmentDao.get(appId);
 		if(appId!=upApp.getAppointmentId())
-			return Response.status(Response.Status.BAD_REQUEST).build();
+			 throw new DataNotFoundException();
 		if(oldApp==null)
-			return Response.status(Response.Status.BAD_REQUEST).build();
+			 throw new DataNotFoundException();
 		if(upApp.getParentUsername().equals(oldApp.getParentId()) && upApp.getTeacherId().equals(oldApp.getTeacherId())
 				&& upApp.getParentUsername().equals(parentid)) {
 			oldApp.setAppointmentDate(upApp.getAppointmentDate());
@@ -367,11 +369,11 @@ public class ParentResource{
 			if(appointmentDao.update(oldApp))
 				return Response.status(Response.Status.OK).entity(e).build();
 			else
-				 return Response.status(Response.Status.BAD_REQUEST).build();
-		}
+				 throw new DataNotFoundException();
+			}
 
-		return Response.status(Response.Status.BAD_REQUEST).build();
-    }
+		 throw new DataNotFoundException();
+		 }
 	
 	@DELETE
 	@Path("setAppointments/{appoint_id}")
@@ -381,7 +383,7 @@ public class ParentResource{
     		AppointmentWrapper upApp,@Context UriInfo uriInfo) {
 		Appointment oldApp= appointmentDao.get(AppId);
 		if(oldApp==null)
-			return Response.status(Response.Status.BAD_REQUEST).build();
+			 throw new DataNotFoundException();
 		if(upApp.getParentUsername().equals(oldApp.getParentId()) && upApp.getTeacherId().equals(oldApp.getTeacherId())
 				&& upApp.getTeacherId().equals(teacherid)) {
 			List<Link> uris = new ArrayList<Link>();
@@ -398,11 +400,11 @@ public class ParentResource{
 			if(appointmentDao.delete(oldApp))
 				return Response.status(Response.Status.OK).entity(e).build();
 			else
-				 return Response.status(Response.Status.BAD_REQUEST).build();
-		}
+				 throw new DataNotFoundException();
+			}
 
-		return Response.status(Response.Status.BAD_REQUEST).build();
-    }
+		 throw new DataNotFoundException();
+		 }
 	@Path("History")
 	@GET
 	@Produces(MediaType.APPLICATION_XML)
@@ -440,8 +442,8 @@ public class ParentResource{
             return Response.status(Response.Status.OK).entity(e).build();
         }
         else {
-            return Response.status(Response.Status.NO_CONTENT).build();
-        }
+        	throw new NoContentException();
+        	}
     
 	}
 	
@@ -484,8 +486,8 @@ public class ParentResource{
             return Response.status(Response.Status.OK).entity(e).build();
         }
         else {
-            return Response.status(Response.Status.NO_CONTENT).build();
-        }
+        	throw new NoContentException();
+        	}
     	
     }
 	
@@ -522,12 +524,12 @@ public class ParentResource{
 		            return Response.status(Response.Status.OK).entity(e).build();
 		        }
 		        else {
-		            return Response.status(Response.Status.BAD_REQUEST).build();
-		        }
+		        	 throw new DataNotFoundException();
+		        	 }
     		}
     	}
-        return Response.status(Response.Status.BAD_REQUEST).build();
-    }
+        throw new DataNotFoundException();
+        }
 	
 	
    
@@ -562,8 +564,8 @@ public class ParentResource{
             return Response.status(Response.Status.OK).entity(e).build();
         }
         else {
-            return Response.status(Response.Status.NO_CONTENT).build();
-        }
+        	throw new NoContentException();
+        	}
        	
    }
    	//utile singola visuale per vedere le notifiche?
@@ -601,8 +603,8 @@ public class ParentResource{
             return Response.status(Response.Status.OK).entity(e).build();
         }
         else {
-            return Response.status(Response.Status.NO_CONTENT).build();
-        }
+        	throw new NoContentException();
+        	}
        	
    }
  	public void addLinkToList(List<Link> list,String url,String rel,String type) {

@@ -19,6 +19,8 @@ import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
 import org.marcoWenzel.middleware.highSchool.dao.LogInDAO;
+import org.marcoWenzel.middleware.highSchool.exception.DataNotFoundException;
+import org.marcoWenzel.middleware.highSchool.exception.UnauthorizedException;
 import org.marcoWenzel.middleware.highSchool.model.LogIn;
 import org.marcoWenzel.middleware.highSchool.util.Category;
 import org.marcoWenzel.middleware.highSchool.util.Link;
@@ -57,7 +59,7 @@ public class AuthenticationResource {
 	    				.build().toString();
 	    		addLinkToList(uris, uri, "general services", "GET");
 	    	}else {
-    			return Response.status(Response.Status.BAD_REQUEST).build();
+    			 throw new DataNotFoundException();
 
 	    	}
 			GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
@@ -68,7 +70,7 @@ public class AuthenticationResource {
 	    			
 	    		}
 	    		else {
-	    			return Response.status(Response.Status.UNAUTHORIZED).build();
+	    			throw new UnauthorizedException();
 	    			
 	    		}
 

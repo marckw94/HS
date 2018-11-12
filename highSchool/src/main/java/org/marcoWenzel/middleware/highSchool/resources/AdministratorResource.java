@@ -39,6 +39,8 @@ import org.marcoWenzel.middleware.highSchool.dao.PaymentDAO;
 import org.marcoWenzel.middleware.highSchool.dao.StudentDAO;
 import org.marcoWenzel.middleware.highSchool.dao.TeacherDAO;
 import org.marcoWenzel.middleware.highSchool.dao.TimeTableDAO;
+import org.marcoWenzel.middleware.highSchool.exception.DataNotFoundException;
+import org.marcoWenzel.middleware.highSchool.exception.NoContentException;
 import org.marcoWenzel.middleware.highSchool.model.Administrator;
 import org.marcoWenzel.middleware.highSchool.model.Classes;
 import org.marcoWenzel.middleware.highSchool.model.Course;
@@ -111,7 +113,7 @@ public class AdministratorResource {
 		if(allCourses.size()>0) {
 			return Response.status(Response.Status.OK).entity(e).build();
 		}else {
-			return Response.status(Response.Status.NO_CONTENT).build();
+			throw new NoContentException();
 		}
 	}
 	
@@ -138,8 +140,8 @@ public class AdministratorResource {
 		if(allParents.size()>0) {
 			return Response.status(Response.Status.OK).entity(e).build();
 		}else {
-			return Response.status(Response.Status.NO_CONTENT).build();
-		}
+			throw new NoContentException();
+			}
 	}
 	
 	@GET 
@@ -164,8 +166,8 @@ public class AdministratorResource {
 		if(allStudents.size()>0) {
 			return Response.status(Response.Status.OK).entity(e).build();
 		}else {
-			return Response.status(Response.Status.NO_CONTENT).build();
-		}
+			throw new NoContentException();
+			}
 	}
 	
 	@GET
@@ -249,10 +251,9 @@ public class AdministratorResource {
 	public Response enrollStud(EnrollRequest newEnroll,@Context UriInfo uriInfo) {
 		Student student = studentDao.get(newEnroll.getIdStud());
 		if (student==null)
-			return Response.status(Response.Status.BAD_REQUEST).build();
+			 throw new DataNotFoundException();
 		if (student.getEnrolledClass()!=null) {
-			 return Response.status(Response.Status.BAD_REQUEST).build();
-		}
+			 throw new DataNotFoundException();		}
 		Classes enrollClass =classDao.get(newEnroll.getIdClass());
 		enrollClass.setEnrolledStud(new ArrayList<Student>());
 		enrollClass.getEnrolledStud().add(student);
@@ -272,8 +273,7 @@ public class AdministratorResource {
 	            return Response.status(Response.Status.OK).entity(e).build();
 	        }
 	        else {
-	            return Response.status(Response.Status.BAD_REQUEST).build();
-	        }
+	        	 throw new DataNotFoundException();	        }
 	}
 	
 	@GET
@@ -283,7 +283,7 @@ public class AdministratorResource {
 		List<Classes> ccList = classDao.findAll();
 		List<StudentResponse> studList = new ArrayList<StudentResponse>();
 		if (ccList == null )
-			 return Response.status(Response.Status.BAD_REQUEST).build();
+			 throw new DataNotFoundException();
 		else 
 			for (Classes cc : ccList) {
 				if (cc.getIdClass()==idClass) {
@@ -305,8 +305,8 @@ public class AdministratorResource {
 		if(studList.size()>0) {
 			return Response.status(Response.Status.OK).entity(e).build();
 		}else {
-			return Response.status(Response.Status.NO_CONTENT).build();
-		}
+			throw new NoContentException();
+			}
 	}
 
 	//serve una sorta schermata di home
@@ -330,8 +330,8 @@ public class AdministratorResource {
 	            return Response.status(Response.Status.CREATED).entity(e).build();
 	        }
 	        else {
-	            return Response.status(Response.Status.BAD_REQUEST).build();
-	        }
+	        	 throw new DataNotFoundException();
+	        	 }
 	
 	}
 	
@@ -361,8 +361,8 @@ public class AdministratorResource {
 		if (newlog!= null && loginDao.create(newlog) && newParent!=null && parentDao.create(newParent)) {
 			 return Response.status(Response.Status.CREATED).entity(e).build();
 		}
-		return Response.status(Response.Status.BAD_REQUEST).build();
-	}
+		 throw new DataNotFoundException();
+		 }
 	
 	@Path("{parent_id}/newSon")
 	@POST
@@ -389,8 +389,8 @@ public class AdministratorResource {
 		if(newStud!= null && studentDao.create(newStud) && parentDao.update(parent)) {
 			return Response.status(Response.Status.CREATED).entity(e).build();
 		}
-		return Response.status(Response.Status.BAD_REQUEST).build();	
-	}
+		 throw new DataNotFoundException();
+		 }
 	
 	
 	@Path("createTeacher")
@@ -426,8 +426,8 @@ public class AdministratorResource {
 		if (newlog!= null && loginDao.create(newlog) && newTc!=null && teacherDao.create(newTc)) {
 			 return Response.status(Response.Status.CREATED).entity(e).build();
 		}
-		return Response.status(Response.Status.BAD_REQUEST).build();
-	}
+		 throw new DataNotFoundException();
+		 }
 	
 	@Path("newCourse")
 	@POST
@@ -456,8 +456,8 @@ public class AdministratorResource {
 		if (newCourse!= null && courseDao.create(newCourse)) {
 			 return Response.status(Response.Status.CREATED).entity(e).build();
 		}
-		return Response.status(Response.Status.BAD_REQUEST).build();
-	}
+		 throw new DataNotFoundException();
+		 }
 	@Path("newClass")
 	@POST
 	@Consumes(MediaType.APPLICATION_XML)
@@ -476,8 +476,8 @@ public class AdministratorResource {
 		if(newC!=null && classDao.create(newClass)) {
 			 return Response.status(Response.Status.CREATED).entity(e).build();
 		}
-		return Response.status(Response.Status.BAD_REQUEST).build();
-	}
+		 throw new DataNotFoundException();
+		 }
 	@Path("allClassCourse")
 	@GET
 	@Consumes(MediaType.APPLICATION_XML)
@@ -514,8 +514,8 @@ public class AdministratorResource {
 		if(ccrList.size()>0) {
 			return Response.status(Response.Status.OK).entity(e).build();
 		}else {
-			return Response.status(Response.Status.NO_CONTENT).build();
-		}
+			throw new NoContentException();
+			}
 		
 	}
 	@Path("allClasses")
@@ -540,8 +540,8 @@ public class AdministratorResource {
 		if(allC.size()>0) {
 			return Response.status(Response.Status.OK).entity(e).build();
 		}else {
-			return Response.status(Response.Status.NO_CONTENT).build();
-		}
+			throw new NoContentException();
+			}
 	}
 	@Path("newTeacherCourse/{teacher_id}/{course_id}")
 	@PUT
@@ -563,8 +563,8 @@ public class AdministratorResource {
 		if (course!= null && teacher!= null && teacherDao.update(teacher) && courseDao.update(course)) {
 			 return Response.status(Response.Status.OK).entity(e).build();
 		}
-		return Response.status(Response.Status.BAD_REQUEST).build();
-	}
+		 throw new DataNotFoundException();
+		 }
 	@Path("newClassCourse/{class_id}/{course_id}")
 	@POST
 	@Consumes(MediaType.APPLICATION_XML)
@@ -587,8 +587,8 @@ public class AdministratorResource {
 		if (course!= null && teacher!= null && ccaDao.create(cca)) {
 			 return Response.status(Response.Status.CREATED).entity(e).build();
 		}
-		return Response.status(Response.Status.BAD_REQUEST).build();
-	}
+		 throw new DataNotFoundException();
+		 }
 	@Path("newPayment")
 	@POST
 	@Consumes(MediaType.APPLICATION_XML)
@@ -603,7 +603,7 @@ public class AdministratorResource {
 		newP.setParentUsername(newPW.getParentUsername());
 		newP.setPayed(newP.isPayed());
 		if (newPW.getPayementDate().before(cal.getTime()))
-			return Response.status(Response.Status.BAD_REQUEST).build();
+			throw new DataNotFoundException();
 		newP.setPayementDate(newPW.getPayementDate());
 		newP.setPaymentDescription(newPW.getPaymentDescription());
 		List<Link> uris = new ArrayList<Link>();
@@ -616,8 +616,8 @@ public class AdministratorResource {
 		if (newP !=null && paymentDao.create(newP))
 			return Response.status(Response.Status.CREATED).entity(e).build();
 		else
-			return Response.status(Response.Status.BAD_REQUEST).build();
-	}
+			 throw new DataNotFoundException();
+		}
 
 	@Path("timeTable/{course_id}")
 	@POST
@@ -645,7 +645,7 @@ public class AdministratorResource {
 	        return Response.status(Response.Status.CREATED).entity(e).build();
 	    }
 	    else {
-	        return Response.status(Response.Status.BAD_REQUEST).build();
+	         throw new DataNotFoundException();
 	    }
 	}
 	public void addLinkToList(List<Link> list,String url,String rel,String type) {

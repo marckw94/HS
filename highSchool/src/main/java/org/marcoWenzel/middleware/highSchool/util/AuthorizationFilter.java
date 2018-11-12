@@ -19,6 +19,10 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Provider;
 
+import org.marcoWenzel.middleware.highSchool.exception.DataNotFoundException;
+import org.marcoWenzel.middleware.highSchool.exception.ForbiddenException;
+import org.marcoWenzel.middleware.highSchool.exception.UnauthorizedException;
+
 @Secured
 @Provider
 @Priority(Priorities.AUTHORIZATION)
@@ -44,30 +48,28 @@ public class AuthorizationFilter implements ContainerRequestFilter{
 		}
 		String token = authorizationHeader.substring("Bearer".length()).trim();
 		
-		try {
-			String requestedUser=TokenManager.validateUserToken(token);
-			System.out.println("Request user: "+requestedUser);
-			Category userRole = Category.valueOf(TokenManager.validateToken(token));
-			System.out.println("validateToken:"+TokenManager.validateToken(token));
-			List<Category> classRoles = extractRoles(resourceInfo.getResourceClass());
-			List<Category> methodRoles = extractRoles(resourceInfo.getResourceMethod());
-			
-			if (methodRoles.size() > 0) {
-				if (!methodRoles.contains(userRole)) {
-					requestContext.abortWith(Response.status(Response.Status.FORBIDDEN).build());
-				}
+		String requestedUser=TokenManager.validateUserToken(token);
+		System.out.println("Request user: "+requestedUser);
+		Category userRole = Category.valueOf(TokenManager.validateToken(token));
+		System.out.println("validateToken:"+TokenManager.validateToken(token));
+		List<Category> classRoles = extractRoles(resourceInfo.getResourceClass());
+		List<Category> methodRoles = extractRoles(resourceInfo.getResourceMethod());
+		
+		if (methodRoles.size() > 0) {
+			if (!methodRoles.contains(userRole)) {
+				System.out.println("entro1");
+				throw new ForbiddenException();
 			}
-			if (classRoles.size() > 0) {
-				if (!classRoles.contains(userRole)) {
-					requestContext.abortWith(Response.status(Response.Status.FORBIDDEN).build());
-				}
+		}
+		if (classRoles.size() > 0) {
+			if (!classRoles.contains(userRole)) {
+				System.out.println("entro2");
+				throw new ForbiddenException();
 			}
-			if (userInPath!=null && !requestedUser.equals(userInPath)) {
-				System.out.println("unhautorized resources");
-				requestContext.abortWith(Response.status(Response.Status.FORBIDDEN).build());
-			}
-		} catch (Exception  e) {
-			requestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED).build());
+		}
+		if (userInPath!=null && !requestedUser.equals(userInPath)) {
+			System.out.println("unhautorized resources");
+			throw new UnauthorizedException();
 		}
 		
 	}

@@ -21,6 +21,7 @@ import org.marcoWenzel.middleware.highSchool.dao.AppointmentDAO;
 import org.marcoWenzel.middleware.highSchool.dao.CCAssotiationDAO;
 import org.marcoWenzel.middleware.highSchool.dao.ParentDAO;
 import org.marcoWenzel.middleware.highSchool.dao.TeacherDAO;
+import org.marcoWenzel.middleware.highSchool.exception.DataNotFoundException;
 import org.marcoWenzel.middleware.highSchool.model.Appointment;
 import org.marcoWenzel.middleware.highSchool.model.Classes;
 import org.marcoWenzel.middleware.highSchool.model.Course;
@@ -58,7 +59,7 @@ public class AppointmentResource {
 		Teacher teacherObj= teacherDao.get(teacher);
 		int validityCheck=0;
 		if (parentObj==null || teacherObj==null)
-			return Response.status(Response.Status.BAD_REQUEST).entity("wrong ids").build();
+			 throw new DataNotFoundException();
 		List<Classes>enrolledSonClass= new ArrayList<Classes>();
 		for(Student s:parentObj.getSon()) {
 			enrolledSonClass.add(s.getEnrolledClass());
@@ -81,8 +82,7 @@ public class AppointmentResource {
 				validityCheck=1;
 		}
 		if (validityCheck==0)
-			return Response.status(Response.Status.BAD_REQUEST).entity("wrong assotiation").build();
-				
+			 throw new DataNotFoundException();				
 		//cosi non funziona ma per testare per ora va bene,poiaggiungere i vari param...
 		Appointment newApp = new Appointment();
 		int maxid=appointmentDao.maxid("appointId");
@@ -90,7 +90,7 @@ public class AppointmentResource {
 		newApp.setParentId(parent);
 		newApp.setTeacherId(teacher);
 		if (aw.getAppointmentDate().before(cal.getTime()))
-			return Response.status(Response.Status.BAD_REQUEST).entity("wrong data").build();
+			 throw new DataNotFoundException();
 		newApp.setAppointmentDate(aw.getAppointmentDate());
 		
 	
@@ -112,15 +112,14 @@ public class AppointmentResource {
 					.resolveTemplate("user_id",userId).build().toString();
 	        addLinkToList(uris, uri, "general services", "GET");
 		}else {
-			return Response.status(Response.Status.BAD_REQUEST).entity("ddd").build();
-		}
+			 throw new DataNotFoundException();		}
 		GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
 		 if (appointmentDao.create(newApp)) {
 	            return Response.status(Response.Status.CREATED).entity(e).build();
         }
         else {
-            return Response.status(Response.Status.BAD_REQUEST).entity("eee").build();
-        }
+        	 throw new DataNotFoundException();
+        	 }
         
     }
 	public void addLinkToList(List<Link> list,String url,String rel,String type) {

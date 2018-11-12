@@ -30,6 +30,8 @@ import org.marcoWenzel.middleware.highSchool.dao.NotificationDAO;
 import org.marcoWenzel.middleware.highSchool.dao.StudentDAO;
 import org.marcoWenzel.middleware.highSchool.dao.TeacherDAO;
 import org.marcoWenzel.middleware.highSchool.dao.TimeTableDAO;
+import org.marcoWenzel.middleware.highSchool.exception.DataNotFoundException;
+import org.marcoWenzel.middleware.highSchool.exception.NoContentException;
 import org.marcoWenzel.middleware.highSchool.model.Appointment;
 
 import org.marcoWenzel.middleware.highSchool.model.Course;
@@ -118,8 +120,8 @@ public class TeacherResource {
 	            return Response.status(Response.Status.OK).entity(teacherResponse).build();
 	        }
 	        else {
-	            return Response.status(Response.Status.BAD_REQUEST).build();
-	        }
+	        	 throw new DataNotFoundException();
+	        	 }
         	
     }
 	
@@ -144,9 +146,9 @@ public class TeacherResource {
 		 if (teacherDao.update(updateTeacher)) {
 	            return Response.status(Response.Status.OK).entity(e).build();
 	        }
-	        else {
-	            return Response.status(Response.Status.BAD_REQUEST).build();
-	        }
+	    else {
+	        	 throw new DataNotFoundException();
+	        	 }
 	}
 	//sistemare nomenclatura
 	@GET
@@ -156,7 +158,7 @@ public class TeacherResource {
 		List<CourseResponse> teachedClass = new ArrayList<CourseResponse>();
         	Teacher thisTeacher = teacherDao.get(id);
         	if (!thisTeacher.getTeacherId().equals(id)) 
-        		return Response.status(Response.Status.BAD_REQUEST).build();
+        		throw new DataNotFoundException();
         	Iterator<Course> onCourse =thisTeacher.getCourseKeep().iterator();
         	while (onCourse.hasNext()) {
         		Course i = onCourse.next();
@@ -187,8 +189,8 @@ public class TeacherResource {
                 return Response.status(Response.Status.OK).entity(e).build();
             }
             else {
-                return Response.status(Response.Status.NO_CONTENT).build();
-            }
+            	throw new NoContentException();
+            	}
     }
 
 	@Path("Classes/{course_id}/students")
@@ -236,8 +238,8 @@ public class TeacherResource {
                 return Response.status(Response.Status.OK).entity(e).build();
             }
             else {
-                return Response.status(Response.Status.NO_CONTENT).build();
-            }
+            	throw new NoContentException();
+            	}
     }
 //potrebbe mancare metodo di visione singolare dei corsi e/o degli studenti	
     @Path("Classes/{class_id}/timeTable")
@@ -274,8 +276,8 @@ public class TeacherResource {
 	            return Response.status(Response.Status.OK).entity(e).build();
 	        }
 	        else {
-	            return Response.status(Response.Status.NO_CONTENT).build();
-	        }
+	        	throw new NoContentException();
+	        	}
 	}
     
     @POST
@@ -295,8 +297,8 @@ public class TeacherResource {
     	Course course= courseDao.get(idCourse);
     	Student stud=studentDao.get(stud_id);
     	if (course==null  || stud==null) {
-    		return Response.status(Response.Status.BAD_REQUEST).build();
-    	}
+    		 throw new DataNotFoundException();
+    		 }
     	if (check_courseFeasibility==1) {
 	    	List<CourseClassAssociation>allAssotiation=ccaDao.findAll();
 	    	for(CourseClassAssociation cca : allAssotiation) {
@@ -324,13 +326,13 @@ public class TeacherResource {
 			            return Response.status(Response.Status.CREATED).entity(e).build();
 			        }
 			        else {
-			            return Response.status(Response.Status.BAD_REQUEST).build();
-			        }
+			        	 throw new DataNotFoundException();
+			        	 }
 	    		}
 	    	}
     	}
-    	return Response.status(Response.Status.BAD_REQUEST).build();
-		
+    	 throw new DataNotFoundException();
+    	 
 	}
     
   
@@ -366,8 +368,8 @@ public class TeacherResource {
             return Response.status(Response.Status.OK).entity(e).build();
         }
         else {
-            return Response.status(Response.Status.NO_CONTENT).build();
-        }
+        	throw new NoContentException();
+        	}
         
     }
 	
@@ -380,7 +382,7 @@ public class TeacherResource {
     		AppointmentWrapper upApp,@Context UriInfo uriInfo) {
 		Appointment oldApp= appointmentDao.get(AppId);
 		if(oldApp==null)
-			return Response.status(Response.Status.BAD_REQUEST).build();
+			 throw new DataNotFoundException();
 		if(upApp.getParentUsername().equals(oldApp.getParentId()) && upApp.getTeacherId().equals(oldApp.getTeacherId())
 				&& upApp.getTeacherId().equals(teacherid)) {
 			oldApp.setAppointmentDate(upApp.getAppointmentDate());
@@ -398,11 +400,11 @@ public class TeacherResource {
 			if(appointmentDao.update(oldApp))
 				return Response.status(Response.Status.OK).entity(e).build();
 			else
-				 return Response.status(Response.Status.BAD_REQUEST).build();
-		}
+				 throw new DataNotFoundException();
+			}
 
-		return Response.status(Response.Status.BAD_REQUEST).build();
-    }
+		 throw new DataNotFoundException();
+		 }
 	
 	@DELETE
 	@Path("setAppointments/{appoint_id}")
@@ -412,7 +414,7 @@ public class TeacherResource {
     		AppointmentWrapper upApp,@Context UriInfo uriInfo) {
 		Appointment oldApp= appointmentDao.get(AppId);
 		if(oldApp==null)
-			return Response.status(Response.Status.BAD_REQUEST).build();
+			 throw new DataNotFoundException();
 		if(upApp.getParentUsername().equals(oldApp.getParentId()) && upApp.getTeacherId().equals(oldApp.getTeacherId())
 				&& upApp.getTeacherId().equals(teacherid)) {
 			List<Link> uris = new ArrayList<Link>();
@@ -429,11 +431,11 @@ public class TeacherResource {
 			if(appointmentDao.delete(oldApp))
 				return Response.status(Response.Status.OK).entity(e).build();
 			else
-				 return Response.status(Response.Status.BAD_REQUEST).build();
-		}
+				 throw new DataNotFoundException();
+			}
 
-		return Response.status(Response.Status.BAD_REQUEST).build();
-    }
+		 throw new DataNotFoundException();
+		 }
 
 	@Path("Notifications")
 	@GET
@@ -441,7 +443,7 @@ public class TeacherResource {
    public Response  getPublicNotif(@PathParam("user_id") String id,@Context UriInfo uriInfo) {
        	List<Notificatio>noteList = notificationDao.findAll();
        	if (noteList==null)
-            return Response.status(Response.Status.BAD_REQUEST).build();
+       	 throw new DataNotFoundException();
        	List<NotificationResponse> newList = new ArrayList<NotificationResponse>();
        	for(Notificatio n : noteList) {
        		if(n.getPrimaryKey().getReceiver().equals(id)) {
@@ -465,8 +467,8 @@ public class TeacherResource {
             return Response.status(Response.Status.OK).entity(e).build();
         }
         else {
-            return Response.status(Response.Status.BAD_REQUEST).build();
-        }
+        	 throw new DataNotFoundException();
+        	 }
        	
    }
 	

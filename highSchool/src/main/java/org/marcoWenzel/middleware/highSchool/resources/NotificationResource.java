@@ -29,6 +29,7 @@ import org.marcoWenzel.middleware.highSchool.dao.NotificationDAO;
 import org.marcoWenzel.middleware.highSchool.dao.ParentDAO;
 import org.marcoWenzel.middleware.highSchool.dao.StudentDAO;
 import org.marcoWenzel.middleware.highSchool.dao.TeacherDAO;
+import org.marcoWenzel.middleware.highSchool.exception.DataNotFoundException;
 import org.marcoWenzel.middleware.highSchool.model.Course;
 import org.marcoWenzel.middleware.highSchool.model.CourseClassAssociation;
 import org.marcoWenzel.middleware.highSchool.model.Evaluation;
@@ -60,7 +61,7 @@ public class NotificationResource {
  public Response createParentNotif(@PathParam("parent_id")String id,NotificationWrapper newN
 		 ,@Context UriInfo uriInfo) {
 	 if (newN.getReceiver() == null)
-		 return Response.status(Response.Status.BAD_REQUEST).build();
+		 throw new DataNotFoundException();
 	 int maxid=notificationDao.maxid("primaryKey.notificationNumber");
 	 Notificatio notification = new Notificatio();
 	 notification.setPrimaryKey(new Notification_Id());
@@ -71,7 +72,7 @@ public class NotificationResource {
 	 if (newN.getReceiver().equals(id))
 		 notification.getPrimaryKey().setReceiver(newN.getReceiver());
 	 else
-		 return Response.status(Response.Status.BAD_REQUEST).build();
+		 throw new DataNotFoundException();
 	 List<Link> uris = new ArrayList<Link>();
 	 String uri=uriInfo.getAbsolutePathBuilder().build().toString();
 	 addLinkToList(uris, uri, "self", "POST");
@@ -84,8 +85,8 @@ public class NotificationResource {
 	 if(newN != null &&  notificationDao.create(notification)){
 		 return Response.status(Response.Status.CREATED).entity(e).build();
 	 }else
-		 return Response.status(Response.Status.BAD_REQUEST).build();
- }
+		 throw new DataNotFoundException();
+	 }
  @POST
  @Path("newTeacherNotif/{teacher_id}")
  @Produces(MediaType.APPLICATION_XML)
@@ -93,7 +94,7 @@ public class NotificationResource {
  public Response createTeacherNotif(@PathParam("teacher_id")String id,NotificationWrapper newN
 		 ,@Context UriInfo uriInfo) {
 	 if (newN.getReceiver() == null)
-		 return Response.status(Response.Status.BAD_REQUEST).build();
+		 throw new DataNotFoundException();
 	 int maxid=notificationDao.maxid("primaryKey.notificationNumber");
 	 Notificatio notification = new Notificatio();
 	 notification.setPrimaryKey(new Notification_Id());
@@ -105,7 +106,7 @@ public class NotificationResource {
 	 if (newN.getReceiver().equals(id))
 		 notification.getPrimaryKey().setReceiver(newN.getReceiver());
 	 else
-		 return Response.status(Response.Status.BAD_REQUEST).build();
+		 throw new DataNotFoundException();
 	 List<Link> uris = new ArrayList<Link>();
 	 String uri=uriInfo.getAbsolutePathBuilder().build().toString();
 	 addLinkToList(uris, uri, "self", "POST");
@@ -118,8 +119,8 @@ public class NotificationResource {
 	 if(newN != null &&  notificationDao.create(notification)){
 		 return Response.status(Response.Status.CREATED).entity(e).build();
 	 }else
-		 return Response.status(Response.Status.BAD_REQUEST).build();
- }
+		 throw new DataNotFoundException();
+	 }
  
  @Path("allTeach")
  @POST
@@ -127,7 +128,7 @@ public class NotificationResource {
  @Produces(MediaType.APPLICATION_XML)
  public Response createAllTeacher(NotificationWrapper newN,@Context UriInfo uriInfo) {
 	 if (!newN.getReceiver().equals("teachers"))
-		 return Response.status(Response.Status.BAD_REQUEST).build();
+		 throw new DataNotFoundException();
 	 Notificatio notification = new Notificatio();
 	 notification.setPrimaryKey(new Notification_Id());
 	 notification.setContent(newN.getContent());
@@ -143,14 +144,14 @@ public class NotificationResource {
 	 addLinkToList(uris, uri, "self", "POST");
      if (teacher == null ) {
     	 
-         return Response.status(Response.Status.BAD_REQUEST).build();
-     }
+    	 throw new DataNotFoundException();
+    	 }
      
      for (Teacher t:teacher) {
     	 notification.getPrimaryKey().setReceiver(t.getSurname());
     	 notification.getPrimaryKey().setNotificationNumber(idNote);
 	     if ( !notificationDao.create(notification)) 
-	    	 return Response.status(Response.Status.BAD_REQUEST).build();
+	    	 throw new DataNotFoundException();
 	     idNote++;
 	     uri= uriInfo.getBaseUriBuilder().path(NotificationResource.class).path("newTeacherNotif")
 	    		 .path(t.getTeacherId()).build().toString();
@@ -170,7 +171,7 @@ public class NotificationResource {
  @Produces(MediaType.APPLICATION_XML)
  public Response createAllPar(NotificationWrapper newN,@Context UriInfo uriInfo) {
 	 if (!newN.getReceiver().equals("parents"))
-		 return Response.status(Response.Status.BAD_REQUEST).build();
+		 throw new DataNotFoundException();
 	 Notificatio notification = new Notificatio();
 	 notification.setPrimaryKey(new Notification_Id());
 	 notification.setContent(newN.getContent());
@@ -183,14 +184,13 @@ public class NotificationResource {
 	 addLinkToList(uris, uri, "self", "POST");
      if (parent == null ) {
     	 
-         return Response.status(Response.Status.BAD_REQUEST).build();
-     }
+    	 throw new DataNotFoundException();     }
      
      for (Parent p:parent) {
     	 notification.getPrimaryKey().setReceiver(p.getUsername());
     	 notification.getPrimaryKey().setNotificationNumber(idNote);
 	     if ( !notificationDao.create(notification)) 
-	    	 return Response.status(Response.Status.BAD_REQUEST).build();
+	    	 throw new DataNotFoundException();
 	     idNote++;
 	     uri= uriInfo.getBaseUriBuilder().path(NotificationResource.class).path("newParentNotif")
 	    		 .path(p.getUsername()).build().toString();
@@ -210,7 +210,7 @@ public class NotificationResource {
  public Response createParClass(@PathParam("class_id") int id,NotificationWrapper newN
 		 ,@Context UriInfo uriInfo) {
 	 if (!newN.getReceiver().equals("class"))
-		 return Response.status(Response.Status.BAD_REQUEST).build();
+		 throw new DataNotFoundException();
 	 List<Student> allStudent = studentDao.findAll();
 	 List<Link> uris = new ArrayList<Link>();
 	 String uri=uriInfo.getAbsolutePathBuilder().build().toString();
@@ -236,8 +236,7 @@ public class NotificationResource {
 		     addLinkToList(uris, uri, "send specific notification", "POST");
 		     
 		     if ( !notificationDao.create(notification)) {
-		    	 return Response.status(Response.Status.BAD_REQUEST).build();
-		     }
+		    	 throw new DataNotFoundException();		     }
 		 }
 	 }
 	 uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
@@ -256,7 +255,7 @@ public class NotificationResource {
  public Response createTeachClass(@PathParam("class_id") int id,NotificationWrapper newN
 		 ,@Context UriInfo uriInfo) {
 	 if (!newN.getReceiver().equals("class"))
-		 return Response.status(Response.Status.BAD_REQUEST).build();
+		 throw new DataNotFoundException();
 	 List<CourseClassAssociation>ccaList= ccaDao.findAll();
 	 List<Course>coursePerClass= new ArrayList<Course>();
 	 for(CourseClassAssociation singleCCA: ccaList) {
@@ -264,8 +263,7 @@ public class NotificationResource {
 			 try {
 				 coursePerClass.add(courseDao.get(singleCCA.getPrimaryKey().getCourse_id()));
 			 }catch (Exception e) {
-				 return Response.status(Response.Status.BAD_REQUEST).build();
-			}
+				 throw new DataNotFoundException();			}
 		 }
 	 }
 	 List<Link> uris = new ArrayList<Link>();
@@ -285,8 +283,7 @@ public class NotificationResource {
 		  notification.getPrimaryKey().setReceiver(c.getTeacher().getTeacherId());
 		  
 		  if(!notificationDao.create(notification)) {
-			  return Response.status(Response.Status.BAD_REQUEST).build();
-		  }
+			  throw new DataNotFoundException();		  }
 	 }
 	 uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
 				.build().toString();
