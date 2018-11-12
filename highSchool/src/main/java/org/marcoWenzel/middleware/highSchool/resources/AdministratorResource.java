@@ -17,6 +17,7 @@ import java.util.Locale;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.HttpMethod;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -24,9 +25,11 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.GenericEntity;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import javax.xml.ws.spi.http.HttpContext;
 
 import org.marcoWenzel.middleware.highSchool.dao.AdministratorDAO;
 import org.marcoWenzel.middleware.highSchool.dao.CCAssotiationDAO;
@@ -72,8 +75,13 @@ import org.marcoWenzel.middleware.highSchool.wrapper.PaymentWrapper;
 import org.marcoWenzel.middleware.highSchool.wrapper.TeacherWrapper;
 import org.marcoWenzel.middleware.highSchool.wrapper.TimeTableWrapper;
 import org.marcoWenzel.middleware.highSchool.wrapper.Wrapper;
+
+import com.sun.glass.ui.delegate.MenuItemDelegate;
+import com.sun.research.ws.wadl.Request;
 //@Secured({Category.Admin})
 @Path("Admin")
+@Consumes({MediaType.APPLICATION_JSON,MediaType.APPLICATION_XML})
+@Produces({MediaType.APPLICATION_JSON,MediaType.APPLICATION_XML})
 public class AdministratorResource {
 	AdministratorDAO administratorDao = new AdministratorDAO();
 	TimeTableDAO timeTableDao = new TimeTableDAO();
@@ -91,9 +99,7 @@ public class AdministratorResource {
    
 	@GET 
 	@Path("allCourses")
-	@Produces(MediaType.APPLICATION_XML)
-	public Response getAllClasses(@Context UriInfo uriInfo) {
-		
+	public Response getAllClasses(@Context UriInfo uriInfo,@Context HttpHeaders h) {
 		List<Course>allCourses=courseDao.findAll();
 		List <CourseResponse> crs= new ArrayList<CourseResponse>();
 		for (Course i : allCourses) {
@@ -111,7 +117,7 @@ public class AdministratorResource {
 		}
 		GenericEntity<List<CourseResponse>> e = new GenericEntity<List<CourseResponse>>(crs) {};
 		if(allCourses.size()>0) {
-			return Response.status(Response.Status.OK).entity(e).build();
+			return Response.status(Response.Status.OK).entity(e).type(negotiation(h)).build();
 		}else {
 			throw new NoContentException();
 		}
@@ -119,8 +125,8 @@ public class AdministratorResource {
 	
 	@GET 
 	@Path("allParents")
-	@Produces(MediaType.APPLICATION_XML)
-	public Response getAllParents(@Context UriInfo uriInfo) {
+	
+	public Response getAllParents(@Context UriInfo uriInfo,@Context HttpHeaders h) {
 		List<Parent>allParents=parentDao.findAll();
 		List <ParentResponse> crs= new ArrayList<ParentResponse>();
 		for (Parent i : allParents) {
@@ -138,7 +144,7 @@ public class AdministratorResource {
 		}
 		GenericEntity<List<ParentResponse>> e = new GenericEntity<List<ParentResponse>>(crs) {};
 		if(allParents.size()>0) {
-			return Response.status(Response.Status.OK).entity(e).build();
+			return Response.status(Response.Status.OK).entity(e).type(negotiation(h)).build();
 		}else {
 			throw new NoContentException();
 			}
@@ -146,8 +152,8 @@ public class AdministratorResource {
 	
 	@GET 
 	@Path("allStudents")
-	@Produces(MediaType.APPLICATION_XML)
-	public Response getAllStudents(@Context UriInfo uriInfo) {
+
+	public Response getAllStudents(@Context UriInfo uriInfo,@Context HttpHeaders h) {
 		List<Student>allStudents=studentDao.findAll();
 		List <StudentResponse> crs= new ArrayList<StudentResponse>();
 		for (Student i : allStudents) {
@@ -164,15 +170,15 @@ public class AdministratorResource {
 		}
 		GenericEntity<List<StudentResponse>> e = new GenericEntity<List<StudentResponse>>(crs) {};
 		if(allStudents.size()>0) {
-			return Response.status(Response.Status.OK).entity(e).build();
+			return Response.status(Response.Status.OK).entity(e).type(negotiation(h)).build();
 		}else {
 			throw new NoContentException();
 			}
 	}
 	
 	@GET
-	@Produces(MediaType.APPLICATION_XML)
-	public Response getParentServices(@PathParam("user_id")String id,@Context UriInfo uriInfo) {
+
+	public Response getParentServices(@PathParam("user_id")String id,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 		List<Link> uris = new ArrayList<Link>();
 		String uri = uriInfo.getAbsolutePathBuilder().build().toString();
 		addLinkToList(uris, uri, "self", "GET");
@@ -242,13 +248,12 @@ public class AdministratorResource {
 		addLinkToList(uris, uri, "add new class hours", "POST");
 		GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
 
-		return Response.status(Response.Status.OK).entity(e).build();
+		return Response.status(Response.Status.OK).entity(e).type(negotiation(h)).build();
 	}
 	@PUT
 	@Path("enrollment")
-	@Consumes(MediaType.APPLICATION_XML)
-	@Produces(MediaType.APPLICATION_XML)
-	public Response enrollStud(EnrollRequest newEnroll,@Context UriInfo uriInfo) {
+
+	public Response enrollStud(EnrollRequest newEnroll,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 		Student student = studentDao.get(newEnroll.getIdStud());
 		if (student==null)
 			 throw new DataNotFoundException();
@@ -270,7 +275,7 @@ public class AdministratorResource {
         addLinkToList(uris, uri, "general services", "GET");
 		GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
 		 if (classDao.update(enrollClass) && studentDao.update(student)) {
-	            return Response.status(Response.Status.OK).entity(e).build();
+	            return Response.status(Response.Status.OK).entity(e).type(negotiation(h)).build();
 	        }
 	        else {
 	        	 throw new DataNotFoundException();	        }
@@ -278,8 +283,7 @@ public class AdministratorResource {
 	
 	@GET
 	@Path("classes/{class_id}")
-	@Produces(MediaType.APPLICATION_XML)
-	 public Response allStudEnrolled(@PathParam("class_id") int idClass,@Context UriInfo uriInfo) {
+	 public Response allStudEnrolled(@PathParam("class_id") int idClass,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 		List<Classes> ccList = classDao.findAll();
 		List<StudentResponse> studList = new ArrayList<StudentResponse>();
 		if (ccList == null )
@@ -303,7 +307,7 @@ public class AdministratorResource {
 			}
 		GenericEntity<List<StudentResponse>> e = new GenericEntity<List<StudentResponse>>(studList) {};
 		if(studList.size()>0) {
-			return Response.status(Response.Status.OK).entity(e).build();
+			return Response.status(Response.Status.OK).entity(e).type(negotiation(h)).build();
 		}else {
 			throw new NoContentException();
 			}
@@ -312,9 +316,10 @@ public class AdministratorResource {
 	//serve una sorta schermata di home
 	@Path("newAdministrator")
 	@POST
-	@Produces(MediaType.APPLICATION_XML)
-	@Consumes(MediaType.APPLICATION_XML)
-	public Response createAdmin(Administrator newA,@Context UriInfo uriInfo) {
+	
+	public Response createAdmin(Administrator newA,@Context UriInfo uriInfo,@Context HttpHeaders h) {
+		String accept=h.getHeaderString(HttpHeaders.CONTENT_TYPE);
+		System.out.println("media used: "+ accept);
 		LogIn newLog= new LogIn();
 		newLog.setCategory("Admin");
 		newLog.setPassword(newA.getPassword());
@@ -327,7 +332,7 @@ public class AdministratorResource {
         addLinkToList(uris, uri, "general services", "GET");
 		GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
 		 if (loginDao.create(newLog) && administratorDao.create(newA)) {
-	            return Response.status(Response.Status.CREATED).entity(e).build();
+	            return Response.status(Response.Status.CREATED).entity(e).type(negotiation(h)).build();
 	        }
 	        else {
 	        	 throw new DataNotFoundException();
@@ -337,9 +342,7 @@ public class AdministratorResource {
 	
 	@Path("createParent")
 	@POST
-	@Consumes(MediaType.APPLICATION_XML)
-	@Produces(MediaType.APPLICATION_XML)
-	 public Response createParent(ParentWrapper newP,@Context UriInfo  uriInfo) {
+	 public Response createParent(ParentWrapper newP,@Context UriInfo  uriInfo,@Context HttpHeaders h ) {
 		LogIn newlog= new LogIn();
 		Parent newParent = new Parent();
 		newParent.setName(newP.getName());
@@ -359,16 +362,14 @@ public class AdministratorResource {
         addLinkToList(uris, uri, "general services", "GET");
 		GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
 		if (newlog!= null && loginDao.create(newlog) && newParent!=null && parentDao.create(newParent)) {
-			 return Response.status(Response.Status.CREATED).entity(e).build();
+			 return Response.status(Response.Status.CREATED).entity(e).type(negotiation(h)).build();
 		}
 		 throw new DataNotFoundException();
 		 }
 	
 	@Path("{parent_id}/newSon")
 	@POST
-	@Consumes(MediaType.APPLICATION_XML)
-	@Produces(MediaType.APPLICATION_XML)
-	 public Response createSon(Wrapper newS,@PathParam("parent_id") String parentS,@Context UriInfo uriInfo) {
+	 public Response createSon(Wrapper newS,@PathParam("parent_id") String parentS,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 		Parent parent = parentDao.get(parentS);
 		Student newStud = new Student();
 		newStud.setName(newS.getName());
@@ -387,7 +388,7 @@ public class AdministratorResource {
 		GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
 
 		if(newStud!= null && studentDao.create(newStud) && parentDao.update(parent)) {
-			return Response.status(Response.Status.CREATED).entity(e).build();
+			return Response.status(Response.Status.CREATED).entity(e).type(negotiation(h)).build();
 		}
 		 throw new DataNotFoundException();
 		 }
@@ -397,7 +398,7 @@ public class AdministratorResource {
 	@POST
 	@Consumes(MediaType.APPLICATION_XML)
 	@Produces(MediaType.APPLICATION_XML)
-	 public Response createTeacher(TeacherWrapper newT,@Context UriInfo uriInfo) {
+	 public Response createTeacher(TeacherWrapper newT,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 		List<Course> courseList=courseDao.findAll();
 		LogIn newlog= new LogIn();
 		newlog.setUsername(newT.getTeacherId());
@@ -424,16 +425,15 @@ public class AdministratorResource {
 		}
 		GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
 		if (newlog!= null && loginDao.create(newlog) && newTc!=null && teacherDao.create(newTc)) {
-			 return Response.status(Response.Status.CREATED).entity(e).build();
+			 return Response.status(Response.Status.CREATED).entity(e).type(negotiation(h)).build();
 		}
 		 throw new DataNotFoundException();
 		 }
 	
 	@Path("newCourse")
 	@POST
-	@Consumes(MediaType.APPLICATION_XML)
-	@Produces(MediaType.APPLICATION_XML)
-	 public Response createCourse(CourseWrapper newC,@Context UriInfo uriInfo) {
+
+	 public Response createCourse(CourseWrapper newC,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 		List<Teacher> teacherList = teacherDao.findAll();
 		Course newCourse= new Course();
 		newCourse.setClassRoom(newC.getClassRoom());
@@ -454,7 +454,7 @@ public class AdministratorResource {
 		}
 		GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
 		if (newCourse!= null && courseDao.create(newCourse)) {
-			 return Response.status(Response.Status.CREATED).entity(e).build();
+			 return Response.status(Response.Status.CREATED).entity(e).type(negotiation(h)).build();
 		}
 		 throw new DataNotFoundException();
 		 }
@@ -462,7 +462,7 @@ public class AdministratorResource {
 	@POST
 	@Consumes(MediaType.APPLICATION_XML)
 	@Produces(MediaType.APPLICATION_XML)
-	 public Response createClass(ClassWrapper newC,@Context UriInfo uriInfo) {
+	 public Response createClass(ClassWrapper newC,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 		Classes newClass = new Classes();
 		newClass.setIdClass(classDao.maxid("idClass"));
 		newClass.setClassName(newC.getClassName());
@@ -474,7 +474,7 @@ public class AdministratorResource {
         addLinkToList(uris, uri, "general services", "GET");
         GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
 		if(newC!=null && classDao.create(newClass)) {
-			 return Response.status(Response.Status.CREATED).entity(e).build();
+			 return Response.status(Response.Status.CREATED).entity(e).type(negotiation(h)).build();
 		}
 		 throw new DataNotFoundException();
 		 }
@@ -482,7 +482,7 @@ public class AdministratorResource {
 	@GET
 	@Consumes(MediaType.APPLICATION_XML)
 	@Produces(MediaType.APPLICATION_XML)
-	public Response seeAssotiation(@Context UriInfo uriInfo) {
+	public Response seeAssotiation(@Context UriInfo uriInfo,@Context HttpHeaders h) {
 		List <CourseClassAssociation> listCca= ccaDao.findAll();
 		List<Integer> listOfClasses = new ArrayList<Integer>();
 		List<ClassCourseResponse> ccrList = new ArrayList<ClassCourseResponse>();
@@ -512,7 +512,7 @@ public class AdministratorResource {
 		}
 		GenericEntity<List<ClassCourseResponse>> e = new GenericEntity<List<ClassCourseResponse>>(ccrList) {};
 		if(ccrList.size()>0) {
-			return Response.status(Response.Status.OK).entity(e).build();
+			return Response.status(Response.Status.OK).entity(e).type(negotiation(h)).build();
 		}else {
 			throw new NoContentException();
 			}
@@ -522,7 +522,7 @@ public class AdministratorResource {
 	@GET
 	@Consumes(MediaType.APPLICATION_XML)
 	@Produces(MediaType.APPLICATION_XML)
-	 public Response seeClass(@Context UriInfo uriInfo) {
+	 public Response seeClass(@Context UriInfo uriInfo,@Context HttpHeaders h) {
 		List<Classes>allC=classDao.findAll();
 		List<ClassResponse> allCResp=new ArrayList<ClassResponse>();
 		for(Classes c : allC) {
@@ -538,7 +538,7 @@ public class AdministratorResource {
 		}
 		GenericEntity<List<ClassResponse>> e = new GenericEntity<List<ClassResponse>>(allCResp) {};
 		if(allC.size()>0) {
-			return Response.status(Response.Status.OK).entity(e).build();
+			return Response.status(Response.Status.OK).entity(e).type(negotiation(h)).build();
 		}else {
 			throw new NoContentException();
 			}
@@ -548,7 +548,7 @@ public class AdministratorResource {
 	@Consumes(MediaType.APPLICATION_XML)
 	@Produces(MediaType.APPLICATION_XML)
 	 public Response createAssociationTeacher(@PathParam("teacher_id") String teacherId,
-			 @PathParam("course_id") int courseId,@Context UriInfo uriInfo) {
+			 @PathParam("course_id") int courseId,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 		Course course= courseDao.get(courseId);
 		Teacher teacher = teacherDao.get(teacherId);
 		teacher.getCourseKeep().add(course);
@@ -561,7 +561,7 @@ public class AdministratorResource {
         addLinkToList(uris, uri, "general services", "GET");
 		GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
 		if (course!= null && teacher!= null && teacherDao.update(teacher) && courseDao.update(course)) {
-			 return Response.status(Response.Status.OK).entity(e).build();
+			 return Response.status(Response.Status.OK).entity(e).type(negotiation(h)).build();
 		}
 		 throw new DataNotFoundException();
 		 }
@@ -570,7 +570,7 @@ public class AdministratorResource {
 	@Consumes(MediaType.APPLICATION_XML)
 	@Produces(MediaType.APPLICATION_XML)
 	 public Response createAssociationClass(@PathParam("class_id") int classId,
-			 @PathParam("course_id") int courseId,@Context UriInfo uriInfo) {
+			 @PathParam("course_id") int courseId,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 		Course course= courseDao.get(courseId);
 		Classes teacher = classDao.get(classId);
 		CourseClassAssociation cca = new CourseClassAssociation();
@@ -585,7 +585,7 @@ public class AdministratorResource {
         addLinkToList(uris, uri, "general services", "GET");
 		GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
 		if (course!= null && teacher!= null && ccaDao.create(cca)) {
-			 return Response.status(Response.Status.CREATED).entity(e).build();
+			 return Response.status(Response.Status.CREATED).entity(e).type(negotiation(h)).build();
 		}
 		 throw new DataNotFoundException();
 		 }
@@ -593,7 +593,7 @@ public class AdministratorResource {
 	@POST
 	@Consumes(MediaType.APPLICATION_XML)
 	@Produces(MediaType.APPLICATION_XML)
-	 public Response issuePayment(PaymentWrapper newPW,@Context UriInfo uriInfo) {
+	 public Response issuePayment(PaymentWrapper newPW,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 
 		
 		Payement newP = new Payement();
@@ -614,7 +614,7 @@ public class AdministratorResource {
         addLinkToList(uris, uri, "general services", "GET");
 		GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
 		if (newP !=null && paymentDao.create(newP))
-			return Response.status(Response.Status.CREATED).entity(e).build();
+			return Response.status(Response.Status.CREATED).entity(e).type(negotiation(h)).build();
 		else
 			 throw new DataNotFoundException();
 		}
@@ -624,7 +624,7 @@ public class AdministratorResource {
 	@Consumes(MediaType.APPLICATION_XML)
 	@Produces(MediaType.APPLICATION_XML)
     public Response create(@PathParam("course_id")int id ,TimeTableWrapper newHours
-    		,@Context UriInfo uriInfo) {
+    		,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 		System.out.println("entro");
 		System.out.println(newHours.getFinishTime());
 		TimeTable newH = new TimeTable();
@@ -642,7 +642,7 @@ public class AdministratorResource {
         addLinkToList(uris, uri, "general services", "GET");
 		GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
 		 if ( timeTableDao.create(newH)) {
-	        return Response.status(Response.Status.CREATED).entity(e).build();
+	        return Response.status(Response.Status.CREATED).entity(e).type(negotiation(h)).build();
 	    }
 	    else {
 	         throw new DataNotFoundException();
@@ -655,5 +655,8 @@ public class AdministratorResource {
 		newL.setType(type);
 		list.add(newL);
 	}
-	
+	public String negotiation(HttpHeaders h) {
+		String accept=h.getHeaderString(HttpHeaders.CONTENT_TYPE);
+		return accept;
+	}
 }

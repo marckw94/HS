@@ -22,6 +22,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.GenericEntity;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
@@ -74,7 +75,7 @@ public class ParentResource{
 	UriInfo uriInfo;
 	@GET
 	@Produces(MediaType.APPLICATION_XML)
-	public Response getParentServices(@PathParam("user_id")String id,@Context UriInfo uriInfo) {
+	public Response getParentServices(@PathParam("user_id")String id,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 		List<Link> uris = new ArrayList<Link>();
 		String uri = uriInfo.getAbsolutePathBuilder().build().toString();
 		addLinkToList(uris, uri, "self", "GET");
@@ -108,13 +109,13 @@ public class ParentResource{
 		addLinkToList(uris, uri, "see private notifications", "GET");
 		GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
 
-		return Response.status(Response.Status.OK).entity(e).build();
+		return Response.status(Response.Status.OK).entity(e).type(negotiation(h)).build();
 	}
 	
 	@Path("personal")
 	@GET
 	@Produces(MediaType.APPLICATION_XML)
-    public Response  getPersonalData(@PathParam("user_id") String id,@Context UriInfo uriInfo) {
+    public Response  getPersonalData(@PathParam("user_id") String id,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 	
 		
     		Parent thisParent = parentDao.get(id);
@@ -133,7 +134,7 @@ public class ParentResource{
     				.resolveTemplate("user_id",id).build().toString();
         	parentInterface.addLink(uri, "general services","GET");
         	if (thisParent.getUsername().equals(id)) {
-	            return Response.status(Response.Status.OK).entity(parentInterface).build();
+	            return Response.status(Response.Status.OK).entity(parentInterface).type(negotiation(h)).build();
 	        }
 	        else {
 	        	 throw new DataNotFoundException();
@@ -145,7 +146,7 @@ public class ParentResource{
 	@Path("personal")
 	@Produces(MediaType.APPLICATION_XML)
 	@Consumes(MediaType.APPLICATION_XML)
-	public Response setParentPersonal(ParentWrapper parIn,@Context UriInfo uriInfo) {
+	public Response setParentPersonal(ParentWrapper parIn,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 		
 		Parent updateParent = parentDao.get(parIn.getUsername());
 		updateParent.setName(parIn.getName());
@@ -160,7 +161,7 @@ public class ParentResource{
         addLinkToList(uris, uri, "general services", "GET");
 		GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
 		 if (parentDao.update(updateParent)) {
-	            return Response.status(Response.Status.OK).entity(e).build();
+	            return Response.status(Response.Status.OK).entity(e).type(negotiation(h)).build();
 	        }
 	        else {
 	        	 throw new DataNotFoundException();
@@ -171,7 +172,7 @@ public class ParentResource{
 	@Path("sons")
 	@Consumes(MediaType.APPLICATION_XML)
 	@Produces(MediaType.APPLICATION_XML)
-    public Response  getSonsList(@PathParam("user_id") String id,@Context UriInfo uriInfo) {
+    public Response  getSonsList(@PathParam("user_id") String id,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 		List<StudentResponse> studentInterfaces = new ArrayList<StudentResponse>();
     	Parent thisParent = parentDao.get(id);
     	Iterator<Student> onSon =thisParent.getSon().iterator();
@@ -192,7 +193,7 @@ public class ParentResource{
     	}
     	GenericEntity<List<StudentResponse>> e = new GenericEntity<List<StudentResponse>>(studentInterfaces) {};
     	if (!studentInterfaces.isEmpty()) {
-            return Response.status(Response.Status.OK).entity(e).build();
+            return Response.status(Response.Status.OK).entity(e).type(negotiation(h)).build();
         }
         else {
         	throw new NoContentException();        }
@@ -202,7 +203,7 @@ public class ParentResource{
 	@Path("son/{roll_id}")
 	@Consumes(MediaType.APPLICATION_XML)
 	@Produces(MediaType.APPLICATION_XML)
-    public Response  sonByRollNum(@PathParam("user_id") String id,@PathParam("roll_id")int rollNum,@Context UriInfo uriInfo) {
+    public Response  sonByRollNum(@PathParam("user_id") String id,@PathParam("roll_id")int rollNum,@Context HttpHeaders h,@Context UriInfo uriInfo) {
     	StudentResponse studentInterface= null;
 		Parent thisParent = parentDao.get(id);
     	Iterator<Student> onSon =thisParent.getSon().iterator();
@@ -225,7 +226,7 @@ public class ParentResource{
     		}
     	}
     	if (studentInterface!=null) {
-            return Response.status(Response.Status.OK).entity(studentInterface).build();
+            return Response.status(Response.Status.OK).entity(studentInterface).type(negotiation(h)).build();
         }
         else {
              throw new DataNotFoundException();
@@ -235,7 +236,8 @@ public class ParentResource{
 	@Path("son/{roll_id}")
 	@Produces(MediaType.APPLICATION_XML)
 	@Consumes(MediaType.APPLICATION_XML)
-	public Response setSonPersonal(@PathParam("user_id") String id,@PathParam("roll_id")int rollNum,Wrapper sonIn,@Context UriInfo uriInfo) {
+	public Response setSonPersonal(@PathParam("user_id") String id,@PathParam("roll_id")int rollNum,Wrapper sonIn,
+			@Context UriInfo uriInfo,@Context HttpHeaders h) {
 		Parent parent= parentDao.get(id);
 		
 		Iterator<Student> childrenOf = parent.getSon().iterator();
@@ -253,7 +255,7 @@ public class ParentResource{
 		        addLinkToList(uris, uri, "general services", "GET");
 				GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
 				if (studentDao.update(s)) {
-		            return Response.status(Response.Status.OK).entity(e).build();
+		            return Response.status(Response.Status.OK).entity(e).type(negotiation(h)).build();
 		        }
 		        else {
 		        	 throw new DataNotFoundException();
@@ -266,7 +268,8 @@ public class ParentResource{
 	@Path("son/{son_id}/marks")
 	@GET
 	@Produces(MediaType.APPLICATION_XML)
-    public Response getMarkSon(@PathParam("user_id") String id,@PathParam("son_id") int n_stud,@Context UriInfo uriInfo) {
+    public Response getMarkSon(@PathParam("user_id") String id,@PathParam("son_id") int n_stud,
+    		@Context UriInfo uriInfo,@Context HttpHeaders h) {
 		List< EvaluationResponse> newListofResp = new ArrayList<EvaluationResponse>();
 		List<Evaluation> allCourse = course_classDao.findAll();
 		System.out.println("size di course class: "+ allCourse.size());
@@ -295,7 +298,7 @@ public class ParentResource{
         	}
         	 GenericEntity<List<EvaluationResponse>> e = new GenericEntity<List<EvaluationResponse>>(newListofResp) {};
              if (newListofResp.size()>0) {
-                 return Response.status(Response.Status.OK).entity(e).build();
+                 return Response.status(Response.Status.OK).entity(e).type(negotiation(h)).build();
              }
              else {
             	 throw new NoContentException();
@@ -306,7 +309,7 @@ public class ParentResource{
 	@Path("appointments")
 	@GET
 	@Produces(MediaType.APPLICATION_XML)
-    public Response  getAppointment(@PathParam("user_id") String id,@Context UriInfo uriInfo) {
+    public Response  getAppointment(@PathParam("user_id") String id,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 		
 		List< AppointmentResponse> ds = new ArrayList<AppointmentResponse>();
 		List<Appointment> apps = appointmentDao.findAll();
@@ -332,7 +335,7 @@ public class ParentResource{
         }
         GenericEntity<List<AppointmentResponse>> e = new GenericEntity<List<AppointmentResponse>>(ds) {};
         if (ds.size()>0) {
-            return Response.status(Response.Status.OK).entity(e).build();
+            return Response.status(Response.Status.OK).entity(e).type(negotiation(h)).build();
         }
         else {
         	throw new NoContentException();
@@ -346,7 +349,7 @@ public class ParentResource{
 	@Consumes(MediaType.APPLICATION_XML)
 	@Produces(MediaType.APPLICATION_XML)
     public Response  setAppointment(@PathParam("user_id") String parentid,@PathParam("appoint_id") int appId,
-    		AppointmentWrapper upApp,@Context UriInfo uriInfo) {
+    		AppointmentWrapper upApp,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 		Appointment oldApp= appointmentDao.get(appId);
 		if(appId!=upApp.getAppointmentId())
 			 throw new DataNotFoundException();
@@ -367,7 +370,7 @@ public class ParentResource{
 	        addLinkToList(uris, uri, "general services", "GET");
 			GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
 			if(appointmentDao.update(oldApp))
-				return Response.status(Response.Status.OK).entity(e).build();
+				return Response.status(Response.Status.OK).entity(e).type(negotiation(h)).build();
 			else
 				 throw new DataNotFoundException();
 			}
@@ -380,7 +383,7 @@ public class ParentResource{
 	@Consumes(MediaType.APPLICATION_XML)
 	@Produces(MediaType.APPLICATION_XML)
     public Response  deleteAppointment(@PathParam("user_id") String teacherid,@PathParam("appoint_id") int AppId,
-    		AppointmentWrapper upApp,@Context UriInfo uriInfo) {
+    		AppointmentWrapper upApp,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 		Appointment oldApp= appointmentDao.get(AppId);
 		if(oldApp==null)
 			 throw new DataNotFoundException();
@@ -398,7 +401,7 @@ public class ParentResource{
 	        addLinkToList(uris, uri, "general services", "GET");
 			GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
 			if(appointmentDao.delete(oldApp))
-				return Response.status(Response.Status.OK).entity(e).build();
+				return Response.status(Response.Status.OK).entity(e).type(negotiation(h)).build();
 			else
 				 throw new DataNotFoundException();
 			}
@@ -408,7 +411,7 @@ public class ParentResource{
 	@Path("History")
 	@GET
 	@Produces(MediaType.APPLICATION_XML)
-    public Response  getPaymentHistory(@PathParam("user_id") String id,@Context UriInfo uriInfo) {
+    public Response  getPaymentHistory(@PathParam("user_id") String id,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 		
 		List<Payement> ds = paymentDao.findAll();
 		List<PaymentResponse> newDs = new ArrayList<PaymentResponse>();
@@ -439,7 +442,7 @@ public class ParentResource{
     	}
         GenericEntity<List<PaymentResponse>> e = new GenericEntity<List<PaymentResponse>>(newDs) {};
         if (!newDs.isEmpty()) {
-            return Response.status(Response.Status.OK).entity(e).build();
+            return Response.status(Response.Status.OK).entity(e).type(negotiation(h)).build();
         }
         else {
         	throw new NoContentException();
@@ -450,7 +453,7 @@ public class ParentResource{
 	@Path("Payments")
 	@GET
 	@Produces(MediaType.APPLICATION_XML)
-    public Response getUpcomingPayment(@PathParam("user_id") String id,@Context UriInfo uriInfo) {
+    public Response getUpcomingPayment(@PathParam("user_id") String id,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 		List<Payement> ds = new ArrayList<Payement>();
 		List<PaymentResponse> newDs = new ArrayList<PaymentResponse>();
 		//poi sostituire con un metodo abstract che ritorna List<Payemnt>
@@ -483,7 +486,7 @@ public class ParentResource{
     	}
         GenericEntity<List<PaymentResponse>> e = new GenericEntity<List<PaymentResponse>>(newDs) {};
         if (!newDs.isEmpty()) {
-            return Response.status(Response.Status.OK).entity(e).build();
+            return Response.status(Response.Status.OK).entity(e).type(negotiation(h)).build();
         }
         else {
         	throw new NoContentException();
@@ -497,7 +500,7 @@ public class ParentResource{
 	@Consumes(MediaType.APPLICATION_XML)
 	@Produces(MediaType.APPLICATION_XML)
     public Response  setPay(@PathParam("user_id") String id,@PathParam("pay_id") int payId,
-    		PayRequest pw,@Context UriInfo uriInfo) {
+    		PayRequest pw,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 		List<Payement> ds = new ArrayList<Payement>();
 		//poi sostituire con un metodo abstract che ritorna List<Payemnt>
 		ds=paymentDao.findAll();
@@ -521,7 +524,7 @@ public class ParentResource{
 		        addLinkToList(uris, uri, "general services", "GET");
 				GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
     			if (paymentDao.update(p)) {
-		            return Response.status(Response.Status.OK).entity(e).build();
+		            return Response.status(Response.Status.OK).entity(e).type(negotiation(h)).build();
 		        }
 		        else {
 		        	 throw new DataNotFoundException();
@@ -536,7 +539,7 @@ public class ParentResource{
    	@Path("pubNotif")
 	@GET
 	@Produces(MediaType.APPLICATION_XML)
-   public Response  getPublicNotif(@PathParam("user_id") String id,@Context UriInfo uriInfo) {
+   public Response  getPublicNotif(@PathParam("user_id") String id,@Context UriInfo uriInfo,@Context HttpHeaders h) {
        	List<Notificatio>noteList = notificationDao.findAll();
        	List<NotificationResponse> newList = new ArrayList<NotificationResponse>();
        	for(Notificatio n : noteList) {
@@ -561,7 +564,7 @@ public class ParentResource{
        	}
         GenericEntity<List<NotificationResponse>> e = new GenericEntity<List<NotificationResponse>>(newList) {};
         if (!newList.isEmpty()) {
-            return Response.status(Response.Status.OK).entity(e).build();
+            return Response.status(Response.Status.OK).entity(e).type(negotiation(h)).build();
         }
         else {
         	throw new NoContentException();
@@ -573,7 +576,7 @@ public class ParentResource{
 	@GET
 	@Consumes(MediaType.APPLICATION_XML)
 	@Produces(MediaType.APPLICATION_XML)
-   public Response  getPrivateNotif(@PathParam("user_id") String id,@Context UriInfo uriInfo) {
+   public Response  getPrivateNotif(@PathParam("user_id") String id,@Context UriInfo uriInfo,@Context HttpHeaders h) {
        	List<Notificatio>noteList =  notificationDao.findAll();
        	System.out.println(noteList);
        	System.out.println(id);
@@ -600,7 +603,7 @@ public class ParentResource{
        	}
         GenericEntity<List<NotificationResponse>> e = new GenericEntity<List<NotificationResponse>>(newList) {};
         if (!newList.isEmpty()) {
-            return Response.status(Response.Status.OK).entity(e).build();
+            return Response.status(Response.Status.OK).entity(e).type(negotiation(h)).build();
         }
         else {
         	throw new NoContentException();
@@ -614,5 +617,8 @@ public class ParentResource{
 		newL.setType(type);
 		list.add(newL);
 	}
-
+	public String negotiation(HttpHeaders h) {
+		String accept=h.getHeaderString(HttpHeaders.CONTENT_TYPE);
+		return accept;
+	}
 }

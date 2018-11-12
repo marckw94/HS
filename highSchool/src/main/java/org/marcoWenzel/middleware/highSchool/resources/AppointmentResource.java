@@ -13,6 +13,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.GenericEntity;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
@@ -49,7 +50,7 @@ public class AppointmentResource {
     @Produces(MediaType.APPLICATION_XML)
 	@Consumes(MediaType.APPLICATION_XML)
     public Response newAppointment(@PathParam("user_id")String userId,AppointmentWrapper aw,
-    		@Context UriInfo uriInfo) {
+    		@Context UriInfo uriInfo,@Context HttpHeaders h) {
 		String parent=aw.getParentUsername();
 		String teacher=aw.getTeacherId();
 		Parent parentObj=parentDao.get(parent);
@@ -115,7 +116,7 @@ public class AppointmentResource {
 			 throw new DataNotFoundException();		}
 		GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
 		 if (appointmentDao.create(newApp)) {
-	            return Response.status(Response.Status.CREATED).entity(e).build();
+	            return Response.status(Response.Status.CREATED).entity(e).type(negotiation(h)).build();
         }
         else {
         	 throw new DataNotFoundException();
@@ -129,5 +130,8 @@ public class AppointmentResource {
 		newL.setType(type);
 		list.add(newL);
 	}
-	
+	public String negotiation(HttpHeaders h) {
+		String accept=h.getHeaderString(HttpHeaders.CONTENT_TYPE);
+		return accept;
+	}
 }

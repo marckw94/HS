@@ -12,6 +12,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.GenericEntity;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
@@ -38,7 +39,7 @@ public class AuthenticationResource {
 	    @POST
 	    @Produces(MediaType.APPLICATION_XML)
 	    @Consumes(MediaType.APPLICATION_XML)
-	    public Response authenticateUser(LogIn log,@Context UriInfo uriInfo) {
+	    public Response authenticateUser(LogIn log,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 	    	String uri;
 	    	String username =log.getUsername();
 	    	String category = log.getCategory();
@@ -66,7 +67,7 @@ public class AuthenticationResource {
 	    		if(userLog != null){
 	    			String token = tokenManager.issueToken(username, category);
 	    			
-	    			return Response.status(Response.Status.OK).cookie(new NewCookie("Token", token)).entity(e).build();
+	    			return Response.status(Response.Status.OK).cookie(new NewCookie("Token", token)).entity(e).type(negotiation(h)).build();
 	    			
 	    		}
 	    		else {
@@ -83,5 +84,8 @@ public class AuthenticationResource {
 			newL.setType(type);
 			list.add(newL);
 	 	}
-	    	
+		public String negotiation(HttpHeaders h) {
+			String accept=h.getHeaderString(HttpHeaders.CONTENT_TYPE);
+			return accept;
+		}	
 }

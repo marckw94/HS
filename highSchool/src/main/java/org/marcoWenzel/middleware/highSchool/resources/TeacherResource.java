@@ -17,6 +17,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.CacheControl;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.GenericEntity;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
@@ -72,7 +73,7 @@ public class TeacherResource {
 	NotificationDAO notificationDao= new NotificationDAO();
 	@GET
 	@Produces(MediaType.APPLICATION_XML)
-	public Response getTeacherServices(@PathParam("user_id")String id,@Context UriInfo uriInfo) {
+	public Response getTeacherServices(@PathParam("user_id")String id,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 		
 		List<Link> uris = new ArrayList<Link>();
 		String uri = uriInfo.getAbsolutePathBuilder().build().toString();
@@ -95,12 +96,12 @@ public class TeacherResource {
 		addLinkToList(uris, uri, "new appointment", "POST");
 		GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
 
-		return Response.status(Response.Status.OK).entity(e).build();
+		return Response.status(Response.Status.OK).entity(e).type(negotiation(h)).build();
 	}
 	@Path("personal")
 	@GET
 	@Produces(MediaType.APPLICATION_XML)
-    public Response  getPersonalData(@PathParam("user_id") String id,@Context UriInfo uriInfo) {
+    public Response  getPersonalData(@PathParam("user_id") String id,@Context UriInfo uriInfo,@Context HttpHeaders h) {
         	Teacher thisTeacher = teacherDao.get(id);
         	TeacherResponse teacherResponse = new TeacherResponse();
         	teacherResponse.setName(thisTeacher.getName());
@@ -117,7 +118,7 @@ public class TeacherResource {
     				.resolveTemplate("user_id",id).build().toString();
         	teacherResponse.addLink(uri, "general services","GET");
         	if (thisTeacher.getTeacherId().equals(id)) {
-	            return Response.status(Response.Status.OK).entity(teacherResponse).build();
+	            return Response.status(Response.Status.OK).entity(teacherResponse).type(negotiation(h)).build();
 	        }
 	        else {
 	        	 throw new DataNotFoundException();
@@ -130,7 +131,7 @@ public class TeacherResource {
 	@Path("personal")
 	@Produces(MediaType.APPLICATION_XML)
 	@Consumes(MediaType.APPLICATION_XML)
-	public Response setTeacherPersonal(TeacherWrapper teaIn,@Context UriInfo uriInfo) {
+	public Response setTeacherPersonal(TeacherWrapper teaIn,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 		
 		Teacher updateTeacher = teacherDao.get(teaIn.getTeacherId());
 		updateTeacher.setName(teaIn.getName());
@@ -144,7 +145,7 @@ public class TeacherResource {
         addLinkToList(uris, uri, "general services", "GET");
 		GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
 		 if (teacherDao.update(updateTeacher)) {
-	            return Response.status(Response.Status.OK).entity(e).build();
+	            return Response.status(Response.Status.OK).entity(e).type(negotiation(h)).build();
 	        }
 	    else {
 	        	 throw new DataNotFoundException();
@@ -154,7 +155,7 @@ public class TeacherResource {
 	@GET
 	@Path("Courses")
 	@Produces(MediaType.APPLICATION_XML)
-    public Response  getClass(@PathParam("user_id") String id,@Context UriInfo uriInfo) {
+    public Response  getClass(@PathParam("user_id") String id,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 		List<CourseResponse> teachedClass = new ArrayList<CourseResponse>();
         	Teacher thisTeacher = teacherDao.get(id);
         	if (!thisTeacher.getTeacherId().equals(id)) 
@@ -186,7 +187,7 @@ public class TeacherResource {
         	}
         	GenericEntity<List<CourseResponse>> e = new GenericEntity<List<CourseResponse>>(teachedClass) {};
         	if (!teachedClass.isEmpty()) {
-                return Response.status(Response.Status.OK).entity(e).build();
+                return Response.status(Response.Status.OK).entity(e).type(negotiation(h)).build();
             }
             else {
             	throw new NoContentException();
@@ -196,7 +197,8 @@ public class TeacherResource {
 	@Path("Classes/{course_id}/students")
 	@GET
 	@Produces(MediaType.APPLICATION_XML)
-    public Response  getAllStudInClass(@PathParam("user_id") String idName,@PathParam("course_id") int id,@Context UriInfo uriInfo) {
+    public Response  getAllStudInClass(@PathParam("user_id") String idName,@PathParam("course_id") int id,
+    		@Context UriInfo uriInfo,@Context HttpHeaders h) {
         	Teacher subject = teacherDao.get(idName);
         	List<Integer> teachedClasses = new ArrayList<Integer>();
         	List<CourseClassAssociation>allAssotiation=ccaDao.findAll();
@@ -235,7 +237,7 @@ public class TeacherResource {
 			}
         	GenericEntity<List<StudentResponse>> e = new GenericEntity<List<StudentResponse>>(listOfResp) {};
         	if (listOfResp.size()>0) {
-                return Response.status(Response.Status.OK).entity(e).build();
+                return Response.status(Response.Status.OK).entity(e).type(negotiation(h)).build();
             }
             else {
             	throw new NoContentException();
@@ -246,7 +248,7 @@ public class TeacherResource {
 	@GET
 	@Produces(MediaType.APPLICATION_XML)
     public Response  getTimeTable(@PathParam("user_id") String id,@PathParam("class_id") int classId
-    		,@Context UriInfo uriInfo) {
+    		,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 		List<TimeTable> tableList =timetableDao.findAll();
 		List<TimeTableResponse> newList = new ArrayList<>();
 		String uri;
@@ -273,7 +275,7 @@ public class TeacherResource {
 		}
 		GenericEntity<List<TimeTableResponse>> e = new GenericEntity<List<TimeTableResponse>>(newList) {};
 		 if (newList.size()>0) {
-	            return Response.status(Response.Status.OK).entity(e).build();
+	            return Response.status(Response.Status.OK).entity(e).type(negotiation(h)).build();
 	        }
 	        else {
 	        	throw new NoContentException();
@@ -285,7 +287,7 @@ public class TeacherResource {
 	@Produces(MediaType.APPLICATION_XML)
 	@Consumes(MediaType.APPLICATION_XML)
 	public Response setMarkPersonal(@PathParam("user_id") String teacherId,@PathParam("course_id") int idCourse,@PathParam("stud_id") int stud_id,
-			EvaluationWrapper classIn,@Context UriInfo uriInfo) {
+			EvaluationWrapper classIn,@Context UriInfo uriInfo,@Context HttpHeaders h) {
     	int check_courseFeasibility=0;
     	Teacher teacher = teacherDao.get(teacherId);
     	for(Course keepCourse: teacher.getCourseKeep()) {
@@ -323,7 +325,7 @@ public class TeacherResource {
 			        addLinkToList(uris, uri, "general services", "GET");
 					GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
 					if (course_classDao.create(newEval)) {
-			            return Response.status(Response.Status.CREATED).entity(e).build();
+			            return Response.status(Response.Status.CREATED).entity(e).type(negotiation(h)).build();
 			        }
 			        else {
 			        	 throw new DataNotFoundException();
@@ -339,7 +341,7 @@ public class TeacherResource {
 	@Path("appointments")
 	@GET
 	@Produces(MediaType.APPLICATION_XML)
-    public Response  getAppointment(@PathParam("user_id") String id,@Context UriInfo uriInfo) {
+    public Response  getAppointment(@PathParam("user_id") String id,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 		
 		List< AppointmentResponse> ds = new ArrayList<AppointmentResponse>();
 		List<Appointment> apps = appointmentDao.findAll();
@@ -365,7 +367,7 @@ public class TeacherResource {
         }
         GenericEntity<List<AppointmentResponse>> e = new GenericEntity<List<AppointmentResponse>>(ds) {};
         if (ds.size()>0) {
-            return Response.status(Response.Status.OK).entity(e).build();
+            return Response.status(Response.Status.OK).entity(e).type(negotiation(h)).build();
         }
         else {
         	throw new NoContentException();
@@ -379,7 +381,7 @@ public class TeacherResource {
 	@Consumes(MediaType.APPLICATION_XML)
 	@Produces(MediaType.APPLICATION_XML)
     public Response  setAppointment(@PathParam("user_id") String teacherid,@PathParam("appoint_id") int AppId,
-    		AppointmentWrapper upApp,@Context UriInfo uriInfo) {
+    		AppointmentWrapper upApp,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 		Appointment oldApp= appointmentDao.get(AppId);
 		if(oldApp==null)
 			 throw new DataNotFoundException();
@@ -398,7 +400,7 @@ public class TeacherResource {
 	        addLinkToList(uris, uri, "general services", "GET");
 			GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
 			if(appointmentDao.update(oldApp))
-				return Response.status(Response.Status.OK).entity(e).build();
+				return Response.status(Response.Status.OK).entity(e).type(negotiation(h)).build();
 			else
 				 throw new DataNotFoundException();
 			}
@@ -411,7 +413,7 @@ public class TeacherResource {
 	@Consumes(MediaType.APPLICATION_XML)
 	@Produces(MediaType.APPLICATION_XML)
     public Response  deleteAppointment(@PathParam("user_id") String teacherid,@PathParam("appoint_id") int AppId,
-    		AppointmentWrapper upApp,@Context UriInfo uriInfo) {
+    		AppointmentWrapper upApp,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 		Appointment oldApp= appointmentDao.get(AppId);
 		if(oldApp==null)
 			 throw new DataNotFoundException();
@@ -429,7 +431,7 @@ public class TeacherResource {
 	        addLinkToList(uris, uri, "general services", "GET");
 			GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
 			if(appointmentDao.delete(oldApp))
-				return Response.status(Response.Status.OK).entity(e).build();
+				return Response.status(Response.Status.OK).entity(e).type(negotiation(h)).build();
 			else
 				 throw new DataNotFoundException();
 			}
@@ -440,7 +442,7 @@ public class TeacherResource {
 	@Path("Notifications")
 	@GET
 	@Produces(MediaType.APPLICATION_XML)
-   public Response  getPublicNotif(@PathParam("user_id") String id,@Context UriInfo uriInfo) {
+   public Response  getPublicNotif(@PathParam("user_id") String id,@Context UriInfo uriInfo,@Context HttpHeaders h) {
        	List<Notificatio>noteList = notificationDao.findAll();
        	if (noteList==null)
        	 throw new DataNotFoundException();
@@ -464,7 +466,7 @@ public class TeacherResource {
        	}
         GenericEntity<List<NotificationResponse>> e = new GenericEntity<List<NotificationResponse>>(newList) {};
         if (!newList.isEmpty()) {
-            return Response.status(Response.Status.OK).entity(e).build();
+            return Response.status(Response.Status.OK).entity(e).type(negotiation(h)).build();
         }
         else {
         	 throw new DataNotFoundException();
@@ -479,5 +481,9 @@ public class TeacherResource {
 		newL.setRel(rel);
 		newL.setType(type);
 		list.add(newL);
+	}
+	public String negotiation(HttpHeaders h) {
+		String accept=h.getHeaderString(HttpHeaders.CONTENT_TYPE);
+		return accept;
 	}
 }

@@ -18,6 +18,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.GenericEntity;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
@@ -59,7 +60,7 @@ public class NotificationResource {
  @Produces(MediaType.APPLICATION_XML)
  @Consumes(MediaType.APPLICATION_XML)
  public Response createParentNotif(@PathParam("parent_id")String id,NotificationWrapper newN
-		 ,@Context UriInfo uriInfo) {
+		 ,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 	 if (newN.getReceiver() == null)
 		 throw new DataNotFoundException();
 	 int maxid=notificationDao.maxid("primaryKey.notificationNumber");
@@ -83,7 +84,7 @@ public class NotificationResource {
      addLinkToList(uris, uri, "general services", "GET");
 	 GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
 	 if(newN != null &&  notificationDao.create(notification)){
-		 return Response.status(Response.Status.CREATED).entity(e).build();
+		 return Response.status(Response.Status.CREATED).entity(e).type(negotiation(h)).build();
 	 }else
 		 throw new DataNotFoundException();
 	 }
@@ -92,7 +93,7 @@ public class NotificationResource {
  @Produces(MediaType.APPLICATION_XML)
  @Consumes(MediaType.APPLICATION_XML)
  public Response createTeacherNotif(@PathParam("teacher_id")String id,NotificationWrapper newN
-		 ,@Context UriInfo uriInfo) {
+		 ,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 	 if (newN.getReceiver() == null)
 		 throw new DataNotFoundException();
 	 int maxid=notificationDao.maxid("primaryKey.notificationNumber");
@@ -117,7 +118,7 @@ public class NotificationResource {
      addLinkToList(uris, uri, "general services", "GET");
 	 GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
 	 if(newN != null &&  notificationDao.create(notification)){
-		 return Response.status(Response.Status.CREATED).entity(e).build();
+		 return Response.status(Response.Status.CREATED).entity(e).type(negotiation(h)).build();
 	 }else
 		 throw new DataNotFoundException();
 	 }
@@ -126,7 +127,7 @@ public class NotificationResource {
  @POST
  @Consumes(MediaType.APPLICATION_XML)
  @Produces(MediaType.APPLICATION_XML)
- public Response createAllTeacher(NotificationWrapper newN,@Context UriInfo uriInfo) {
+ public Response createAllTeacher(NotificationWrapper newN,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 	 if (!newN.getReceiver().equals("teachers"))
 		 throw new DataNotFoundException();
 	 Notificatio notification = new Notificatio();
@@ -162,14 +163,14 @@ public class NotificationResource {
 	 }
 	 GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
 
-     return Response.status(Response.Status.CREATED).entity(e).build();
+     return Response.status(Response.Status.CREATED).entity(e).type(negotiation(h)).build();
  }
  
  @Path("allPar")
  @POST
  @Consumes(MediaType.APPLICATION_XML)
  @Produces(MediaType.APPLICATION_XML)
- public Response createAllPar(NotificationWrapper newN,@Context UriInfo uriInfo) {
+ public Response createAllPar(NotificationWrapper newN,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 	 if (!newN.getReceiver().equals("parents"))
 		 throw new DataNotFoundException();
 	 Notificatio notification = new Notificatio();
@@ -201,14 +202,14 @@ public class NotificationResource {
 	 }
 	 GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
 
-     return Response.status(Response.Status.CREATED).entity(e).build();
+     return Response.status(Response.Status.CREATED).entity(e).type(negotiation(h)).build();
  }
  @Path("ClassPar/{class_id}")
  @POST
  @Consumes(MediaType.APPLICATION_XML)
  @Produces(MediaType.APPLICATION_XML)
  public Response createParClass(@PathParam("class_id") int id,NotificationWrapper newN
-		 ,@Context UriInfo uriInfo) {
+		 ,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 	 if (!newN.getReceiver().equals("class"))
 		 throw new DataNotFoundException();
 	 List<Student> allStudent = studentDao.findAll();
@@ -243,7 +244,7 @@ public class NotificationResource {
 				.build().toString();
 	 addLinkToList(uris, uri, "general services", "GET");
 	 GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
-	 return Response.status(Response.Status.CREATED).entity(e).build();
+	 return Response.status(Response.Status.CREATED).entity(e).type(negotiation(h)).build();
 	
  }
  
@@ -253,7 +254,7 @@ public class NotificationResource {
  @Consumes(MediaType.APPLICATION_XML)
  @Produces(MediaType.APPLICATION_XML)
  public Response createTeachClass(@PathParam("class_id") int id,NotificationWrapper newN
-		 ,@Context UriInfo uriInfo) {
+		 ,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 	 if (!newN.getReceiver().equals("class"))
 		 throw new DataNotFoundException();
 	 List<CourseClassAssociation>ccaList= ccaDao.findAll();
@@ -289,7 +290,7 @@ public class NotificationResource {
 				.build().toString();
 	 addLinkToList(uris, uri, "general services", "GET");
   	 GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
-  	 return Response.status(Response.Status.CREATED).entity(e).build();
+  	 return Response.status(Response.Status.CREATED).entity(e).type(negotiation(h)).build();
      
  }
  
@@ -299,5 +300,9 @@ public class NotificationResource {
 		newL.setRel(rel);
 		newL.setType(type);
 		list.add(newL);
+	}
+	public String negotiation(HttpHeaders h) {
+		String accept=h.getHeaderString(HttpHeaders.CONTENT_TYPE);
+		return accept;
 	}
 }
