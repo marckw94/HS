@@ -123,7 +123,7 @@ public class NotificationResource {
 		 throw new DataNotFoundException();
 	 }
  
- @Path("allTeach")
+ @Path("allTeachers")
  @POST
  @Consumes(MediaType.APPLICATION_XML)
  @Produces(MediaType.APPLICATION_XML)
@@ -166,7 +166,7 @@ public class NotificationResource {
      return Response.status(Response.Status.CREATED).entity(e).type(negotiation(h)).build();
  }
  
- @Path("allPar")
+ @Path("allParents")
  @POST
  @Consumes(MediaType.APPLICATION_XML)
  @Produces(MediaType.APPLICATION_XML)
@@ -204,7 +204,7 @@ public class NotificationResource {
 
      return Response.status(Response.Status.CREATED).entity(e).type(negotiation(h)).build();
  }
- @Path("ClassPar/{class_id}")
+ @Path("ClassParents/{class_id}")
  @POST
  @Consumes(MediaType.APPLICATION_XML)
  @Produces(MediaType.APPLICATION_XML)
@@ -249,7 +249,7 @@ public class NotificationResource {
  }
  
  
- @Path("ClassTeach/{class_id}")
+ @Path("ClassTeachers/{class_id}")
  @POST
  @Consumes(MediaType.APPLICATION_XML)
  @Produces(MediaType.APPLICATION_XML)

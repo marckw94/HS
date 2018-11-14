@@ -29,7 +29,8 @@ import org.marcoWenzel.middleware.highSchool.util.Secured;
 import org.marcoWenzel.middleware.highSchool.util.TokenManager;
 
 
-
+@Produces(MediaType.APPLICATION_JSON)
+@Consumes(MediaType.APPLICATION_JSON)
 @Path("authentication")
 public class AuthenticationResource {
 
@@ -37,8 +38,7 @@ public class AuthenticationResource {
 		LogInDAO loginDao = new LogInDAO();
 		//LOGIN : prende in ingresso username e password 
 	    @POST
-	    @Produces(MediaType.APPLICATION_XML)
-	    @Consumes(MediaType.APPLICATION_XML)
+
 	    public Response authenticateUser(LogIn log,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 	    	String uri;
 	    	String username =log.getUsername();

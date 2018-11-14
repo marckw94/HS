@@ -63,6 +63,7 @@ import org.marcoWenzel.middleware.highSchool.response.ClassResponse;
 import org.marcoWenzel.middleware.highSchool.response.CourseResponse;
 import org.marcoWenzel.middleware.highSchool.response.ParentResponse;
 import org.marcoWenzel.middleware.highSchool.response.StudentResponse;
+import org.marcoWenzel.middleware.highSchool.response.TeacherResponse;
 import org.marcoWenzel.middleware.highSchool.util.Category;
 import org.marcoWenzel.middleware.highSchool.util.Link;
 import org.marcoWenzel.middleware.highSchool.util.Secured;
@@ -108,11 +109,19 @@ public class AdministratorResource {
     		newClass.setCourseDescription(i.getCourseDescription());
     		newClass.setCourseName(i.getCourseName());
     		newClass.setIdCourse(i.getIdCourse());
-    		String uri=uriInfo.getAbsolutePathBuilder().build().toString();
-    		newClass.addLink(uri, "self", "GET");
-    		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
+    		String uri;
+    		if (crs.isEmpty()) {
+	    		uri=uriInfo.getAbsolutePathBuilder().build().toString();
+	    		newClass.addLink(uri, "self", "GET");
+	    		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
+	    				.build().toString();
+	            newClass.addLink( uri, "general services", "GET");
+	    		
+    		}
+    		
+    		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class).path("Course").path(String.valueOf(newClass.getIdCourse()))
     				.build().toString();
-            newClass.addLink( uri, "general services", "GET");
+    		newClass.addLink(uri, "see specific class", "GET");
     		crs.add(newClass);
 		}
 		GenericEntity<List<CourseResponse>> e = new GenericEntity<List<CourseResponse>>(crs) {};
@@ -135,11 +144,20 @@ public class AdministratorResource {
     		newPar.setPassword("*****");
     		newPar.setName(i.getName());
     		newPar.setSurname(i.getSurname());
-    		String uri=uriInfo.getAbsolutePathBuilder().build().toString();
-    		newPar.addLink(uri, "self", "GET");
-    		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
-    				.build().toString();
-            newPar.addLink( uri, "general services", "GET");
+    		String uri;
+    		if (crs.isEmpty()) {
+	    		uri=uriInfo.getAbsolutePathBuilder().build().toString();
+	    		newPar.addLink(uri, "self", "GET");
+	    		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
+	    				.build().toString();
+	            newPar.addLink( uri, "general services", "GET");
+	            uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class).path("newParent")
+	    				.build().toString();
+	            newPar.addLink( uri, "add new Parent", "POST");
+    		}
+    		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class).path("Parent")
+    				.path(newPar.getUsername()).build().toString();
+    		newPar.addLink( uri, "see specif parent", "GET");
     		crs.add(newPar);
 		}
 		GenericEntity<List<ParentResponse>> e = new GenericEntity<List<ParentResponse>>(crs) {};
@@ -149,7 +167,41 @@ public class AdministratorResource {
 			throw new NoContentException();
 			}
 	}
-	
+
+	@GET 
+	@Path("allTeachers")	
+	public Response getAllTeachers(@Context UriInfo uriInfo,@Context HttpHeaders h) {
+		List<Teacher>allTeachers=teacherDao.findAll();
+		List <TeacherResponse> crs= new ArrayList<TeacherResponse>();
+		for (Teacher i : allTeachers) {
+    		TeacherResponse newTeach = new TeacherResponse();
+    		newTeach.setTeacherId(i.getTeacherId());
+    		newTeach.setPassword("*****");
+    		newTeach.setName(i.getName());
+    		newTeach.setSurname(i.getSurname());
+    		String uri;
+    		if (crs.isEmpty()) {
+	    		uri=uriInfo.getAbsolutePathBuilder().build().toString();
+	    		newTeach.addLink(uri, "self", "GET");
+	    		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
+	    				.build().toString();
+	            newTeach.addLink( uri, "general services", "GET");
+	            uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class).path("newTeacher")
+	    				.build().toString();
+	    		newTeach.addLink( uri, "add new teacher", "POST");
+    		}
+    		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class).path("Teacher")
+    				.path(newTeach.getTeacherId()).build().toString();
+    		newTeach.addLink( uri, "see specif teacher", "GET");
+    		crs.add(newTeach);
+		}
+		GenericEntity<List<TeacherResponse>> e = new GenericEntity<List<TeacherResponse>>(crs) {};
+		if(allTeachers.size()>0) {
+			return Response.status(Response.Status.OK).entity(e).type(negotiation(h)).build();
+		}else {
+			throw new NoContentException();
+			}
+	}
 	@GET 
 	@Path("allStudents")
 
@@ -162,10 +214,18 @@ public class AdministratorResource {
     		newStud.setLastName(i.getLastName());
     		newStud.setName(i.getName());
     		String uri=uriInfo.getAbsolutePathBuilder().build().toString();
-    		newStud.addLink(uri, "self", "GET");
-    		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
+    		if (crs.isEmpty()) {
+	    		newStud.addLink(uri, "self", "GET");
+	    		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
+	    				.build().toString();
+	            newStud.addLink( uri, "general services", "GET");
+	            uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class).path("parent_id").path("newSon")
+	    				.build().toString();
+	            newStud.addLink( uri, "add new students", "POST");
+    		}
+    		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class).path("Student").path(String.valueOf(newStud.getRollNo()))
     				.build().toString();
-            newStud.addLink( uri, "general services", "GET");
+    		newStud.addLink( uri, "see specific student", "GET");
     		crs.add(newStud);
 		}
 		GenericEntity<List<StudentResponse>> e = new GenericEntity<List<StudentResponse>>(crs) {};
@@ -177,8 +237,7 @@ public class AdministratorResource {
 	}
 	
 	@GET
-
-	public Response getParentServices(@PathParam("user_id")String id,@Context UriInfo uriInfo,@Context HttpHeaders h) {
+	public Response getAdminServices(@PathParam("user_id")String id,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 		List<Link> uris = new ArrayList<Link>();
 		String uri = uriInfo.getAbsolutePathBuilder().build().toString();
 		addLinkToList(uris, uri, "self", "GET");
@@ -187,7 +246,31 @@ public class AdministratorResource {
 				.build().toString();
 		addLinkToList(uris, uri, "enroll student", "POST");
 		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
-				.path("Classes").path("[class_id]")
+				.path("allStudents")
+				.build().toString();
+		addLinkToList(uris, uri, "see students", "GET");
+		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
+				.path("allParents")
+				.build().toString();
+		addLinkToList(uris, uri, "see parents", "GET");
+		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
+				.path("allTeachers")
+				.build().toString();
+		addLinkToList(uris, uri, "see teachers", "GET");
+		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
+				.path("allCourses")
+				.build().toString();
+		addLinkToList(uris, uri, "see Courses", "GET");
+		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
+				.path("allClassCourse")
+				.build().toString();
+		addLinkToList(uris, uri, "see class course assotiations", "GET");
+		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
+				.path("allClasses")
+				.build().toString();
+		addLinkToList(uris, uri, "see classes", "GET");
+		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
+				.path("studentsPerClass").path("[class_id]")
 				.build().toString();
 		addLinkToList(uris, uri, "see all the students of a specific class", "GET");
 		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
@@ -195,11 +278,11 @@ public class AdministratorResource {
 				.build().toString();
 		addLinkToList(uris, uri, "create new admin", "POST");
 		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
-				.path("createParent")
+				.path("newParent")
 				.build().toString();
 		addLinkToList(uris, uri, "create new Parent", "POST");
 		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
-				.path("createTeacher")
+				.path("newTeacher")
 				.build().toString();
 		addLinkToList(uris, uri, "create new Teacher", "POST");
 		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
@@ -207,9 +290,13 @@ public class AdministratorResource {
 				.build().toString();
 		addLinkToList(uris, uri, "create new course", "POST");
 		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
-				.path("association").path("[teacher_id]").path("[class_id]")
+				.path("newTeacherCourse").path("teacher_id").path("course_id")
 				.build().toString();
-		addLinkToList(uris, uri, "assign a class to a teacher", "POST");
+		addLinkToList(uris, uri, "assign a course to a teacher", "POST");
+		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
+				.path("newClassCourse").path("class_id").path("course_id")
+				.build().toString();
+		addLinkToList(uris, uri, "assign a class to a course", "POST");
 		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
 				.path("newPayment")
 				.build().toString();
@@ -219,31 +306,31 @@ public class AdministratorResource {
 				.build().toString();
 		addLinkToList(uris, uri, "create new course", "POST");
 		uri=uriInfo.getBaseUriBuilder().path(NotificationResource.class)
-				.path("newParentNotif").path("[user_id]")
+				.path("newParentNotif").path("user_id")
 				.build().toString();
 		addLinkToList(uris, uri, "issue notification to a single parent", "POST");
 		uri=uriInfo.getBaseUriBuilder().path(NotificationResource.class)
-				.path("newTeacherNotif").path("[user_id]")
+				.path("newTeacherNotif").path("user_id")
 				.build().toString();
 		addLinkToList(uris, uri, "issue notification to a single teacher", "POST");
 		uri=uriInfo.getBaseUriBuilder().path(NotificationResource.class)
-				.path("allPar")
+				.path("allParents")
 				.build().toString();
 		addLinkToList(uris, uri, "issue notification to all parents", "POST");
 		uri=uriInfo.getBaseUriBuilder().path(NotificationResource.class)
-				.path("allTeach")
+				.path("allTeachers")
 				.build().toString();
 		addLinkToList(uris, uri, "issue notification to all teachers", "POST");
 		uri=uriInfo.getBaseUriBuilder().path(NotificationResource.class)
-				.path("ClassPar").path("[class_id]")
+				.path("classParents").path("class_id")
 				.build().toString();
-		addLinkToList(uris, uri, "issue notification to all the parent of a specific class ", "POST");
+		addLinkToList(uris, uri, "issue notification to all the parents of a specific class ", "POST");
 		uri=uriInfo.getBaseUriBuilder().path(NotificationResource.class)
-				.path("ClassTeach").path("[class_id]")
+				.path("classTeachers").path("class_id")
 				.build().toString();
-		addLinkToList(uris, uri, "issue notification to the teacher of a specific class ", "POST");
+		addLinkToList(uris, uri, "issue notification to the teachers of a specific class ", "POST");
 		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
-				.path("timeTable").path("[class_id]")
+				.path("TimeTable").path("class_id")
 				.build().toString();
 		addLinkToList(uris, uri, "add new class hours", "POST");
 		GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
@@ -273,6 +360,15 @@ public class AdministratorResource {
 		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
 				.build().toString();
         addLinkToList(uris, uri, "general services", "GET");
+        uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class).path("studentsPerClass").path(String.valueOf(enrollClass.getIdClass()))
+				.build().toString();
+        addLinkToList(uris, uri, "see students of enrolled class", "GET");
+        uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class).path("Student").path(String.valueOf(student.getRollNo()))
+				.build().toString();
+        addLinkToList(uris, uri, "see enrolled student", "GET");
+        uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class).path("Class").path((String.valueOf(enrollClass.getIdClass())))
+				.build().toString();
+        addLinkToList(uris, uri, "see class of enrollment", "GET");
 		GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
 		 if (classDao.update(enrollClass) && studentDao.update(student)) {
 	            return Response.status(Response.Status.OK).entity(e).type(negotiation(h)).build();
@@ -282,7 +378,7 @@ public class AdministratorResource {
 	}
 	
 	@GET
-	@Path("classes/{class_id}")
+	@Path("studentsPerClass/{class_id}")
 	 public Response allStudEnrolled(@PathParam("class_id") int idClass,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 		List<Classes> ccList = classDao.findAll();
 		List<StudentResponse> studList = new ArrayList<StudentResponse>();
@@ -296,11 +392,20 @@ public class AdministratorResource {
 						newStud.setRollNo(s.getRollNo());
 						newStud.setLastName(s.getLastName());
 						newStud.setName(s.getName());
-						String uri= uriInfo.getAbsolutePathBuilder().build().toString();
-						newStud.addLink(uri, "self", "GET");
-						uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
+						String uri;
+						if (studList.isEmpty()) {
+							uri= uriInfo.getAbsolutePathBuilder().build().toString();
+							newStud.addLink(uri, "self", "GET");
+							uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
+				    				.build().toString();
+				        	newStud.addLink(uri, "general services","GET");
+				        	uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class).path("enrollment")
+				    				.build().toString();
+				        	newStud.addLink(uri, "enroll a new student","PUT");
+						}
+						uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class).path("Student").path(String.valueOf(newStud.getRollNo()))
 			    				.build().toString();
-			        	newStud.addLink(uri, "general services","GET");
+			    		newStud.addLink( uri, "see specific student", "GET");
 						studList.add(newStud);
 					}	
 				}
@@ -340,7 +445,7 @@ public class AdministratorResource {
 	
 	}
 	
-	@Path("createParent")
+	@Path("newParent")
 	@POST
 	 public Response createParent(ParentWrapper newP,@Context UriInfo  uriInfo,@Context HttpHeaders h ) {
 		LogIn newlog= new LogIn();
@@ -371,9 +476,13 @@ public class AdministratorResource {
 	@POST
 	 public Response createSon(Wrapper newS,@PathParam("parent_id") String parentS,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 		Parent parent = parentDao.get(parentS);
+		if (parent==null)
+			throw new DataNotFoundException();
 		Student newStud = new Student();
 		newStud.setName(newS.getName());
 		newStud.setLastName(newS.getLastName());
+		if (newStud.getLastName()==null)
+			throw new DataNotFoundException();
 		newStud.setParentUsername(parent);
 		newStud.setRollNo(studentDao.maxid("rollNo"));
 		parent.getSon().add(newStud);
@@ -381,10 +490,17 @@ public class AdministratorResource {
 		String uri=uriInfo.getAbsolutePathBuilder().build().toString();
 		addLinkToList(uris, uri, "self", "POST");
 		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class).path("enrollment").build().toString();
-		addLinkToList(uris, uri, "enroll student to a corse", "POST");
+		addLinkToList(uris, uri, "enroll student to a class", "PUT");
 		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
 				.build().toString();
         addLinkToList(uris, uri, "general services", "GET");
+        uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class).path("allClasses")
+				.build().toString();
+        addLinkToList(uris, uri, "see classes", "GET");
+        /*
+        uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class).path("allParents")
+				.build().toString();
+        addLinkToList(uris, uri, "see all parents", "GET");*/
 		GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
 
 		if(newStud!= null && studentDao.create(newStud) && parentDao.update(parent)) {
@@ -394,10 +510,9 @@ public class AdministratorResource {
 		 }
 	
 	
-	@Path("createTeacher")
+	@Path("newTeacher")
 	@POST
-	@Consumes(MediaType.APPLICATION_XML)
-	@Produces(MediaType.APPLICATION_XML)
+	
 	 public Response createTeacher(TeacherWrapper newT,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 		List<Course> courseList=courseDao.findAll();
 		LogIn newlog= new LogIn();
@@ -412,15 +527,22 @@ public class AdministratorResource {
 		List<Link> uris = new ArrayList<Link>();
 		String uri=uriInfo.getAbsolutePathBuilder().build().toString();
 		addLinkToList(uris, uri, "self", "POST");
+		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
+				.build().toString();
+        addLinkToList(uris, uri, "general services", "GET");
+		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class).path("allTeachers")
+				.build().toString();
+        addLinkToList(uris, uri, "see all teachers", "GET");
+        uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class).path("newCourse")
+				.build().toString();
+        addLinkToList(uris, uri, "add new course", "POST");
 		for(Course c : courseList) {
 			if (c.getTeacher()==null) {
 				uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
 						.path("association").path(newTc.getTeacherId())
 						.path(Long.toString(c.getIdCourse())).build().toString();
 				addLinkToList(uris, uri, "assign to this course", "PUT");
-				uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
-						.build().toString();
-		        addLinkToList(uris, uri, "general services", "GET");
+				
 			}
 		}
 		GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
@@ -443,14 +565,21 @@ public class AdministratorResource {
 		List<Link> uris = new ArrayList<Link>();
 		String uri=uriInfo.getAbsolutePathBuilder().build().toString();
 		addLinkToList(uris, uri, "self", "POST");
+		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
+				.build().toString();
+        addLinkToList(uris, uri, "general services", "GET");
+        uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class).path("allCourses")
+				.build().toString();
+        addLinkToList(uris, uri, "see all courses", "GET");
+        uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class).path("newTeacher")
+				.build().toString();
+        addLinkToList(uris, uri, "create new teacher", "POST");
 		for(Teacher t : teacherList) {
-			uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class).path("association")
+			uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class).path("newTeacherCourse")
 					.path(t.getTeacherId()).path(Long.toString(newCourse.getIdCourse()))
 					.build().toString();
 			addLinkToList(uris, uri, "assign to a teacher", "PUT");
-			uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
-					.build().toString();
-	        addLinkToList(uris, uri, "general services", "GET");
+			
 		}
 		GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
 		if (newCourse!= null && courseDao.create(newCourse)) {
@@ -460,9 +589,9 @@ public class AdministratorResource {
 		 }
 	@Path("newClass")
 	@POST
-	@Consumes(MediaType.APPLICATION_XML)
-	@Produces(MediaType.APPLICATION_XML)
+
 	 public Response createClass(ClassWrapper newC,@Context UriInfo uriInfo,@Context HttpHeaders h) {
+		List<Course> courseList= courseDao.findAll();
 		Classes newClass = new Classes();
 		newClass.setIdClass(classDao.maxid("idClass"));
 		newClass.setClassName(newC.getClassName());
@@ -472,16 +601,26 @@ public class AdministratorResource {
 		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
 				.build().toString();
         addLinkToList(uris, uri, "general services", "GET");
+        uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class).path("allClasses")
+				.build().toString();
+        addLinkToList(uris, uri, "see all classes", "GET");
+        uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class).path("newCourse")
+				.build().toString();
+        addLinkToList(uris, uri, "add new course", "POST");
+        for(Course c: courseList) {
+        	 uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class).path("newClassCourse")
+     				.path(String.valueOf(newClass.getIdClass())).path(String.valueOf(c.getIdCourse())).build().toString();
+        	 addLinkToList(uris, uri, "create new class course association", "PUT");
+        }
         GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
 		if(newC!=null && classDao.create(newClass)) {
 			 return Response.status(Response.Status.CREATED).entity(e).type(negotiation(h)).build();
 		}
 		 throw new DataNotFoundException();
 		 }
+	
 	@Path("allClassCourse")
 	@GET
-	@Consumes(MediaType.APPLICATION_XML)
-	@Produces(MediaType.APPLICATION_XML)
 	public Response seeAssotiation(@Context UriInfo uriInfo,@Context HttpHeaders h) {
 		List <CourseClassAssociation> listCca= ccaDao.findAll();
 		List<Integer> listOfClasses = new ArrayList<Integer>();
@@ -491,6 +630,7 @@ public class AdministratorResource {
 				listOfClasses.add(cca.getPrimaryKey().getClass_id());
 			
 		}
+		System.out.println(listOfClasses);
 		for (Integer idClass : listOfClasses ) {
 			ClassCourseResponse newResp = new ClassCourseResponse();
 			Classes c = classDao.get(idClass);
@@ -499,15 +639,28 @@ public class AdministratorResource {
 			newResp.setClassName(c.getClassName());
 			newResp.setCourseList(new ArrayList<String>());
 			for (CourseClassAssociation cca : listCca) {
-				if (cca.getPrimaryKey().getClass_id()==c.getIdClass())
+				if (cca.getPrimaryKey().getClass_id()==c.getIdClass()) {
 					courseSelection= courseDao.get(cca.getPrimaryKey().getCourse_id());
 					newResp.getCourseList().add(courseSelection.getCourseName());
+				}
 			}
-			String uri=uriInfo.getAbsolutePathBuilder().build().toString();
-    		newResp.addLink(uri, "self", "GET");
-    		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
-    				.build().toString();
-            newResp.addLink( uri, "general services", "GET");
+			if (ccrList.isEmpty()) {
+				String uri=uriInfo.getAbsolutePathBuilder().build().toString();
+	    		newResp.addLink(uri, "self", "GET");
+	    		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
+	    				.build().toString();
+	            newResp.addLink( uri, "general services", "GET");
+	            
+	            
+			}
+			String uri =uriInfo.getBaseUriBuilder().path(AdministratorResource.class).path("Class")
+					.path(String.valueOf(c.getIdClass()))
+					.build().toString();
+			newResp.addLink( uri, "see class:"+c.getClassName(), "GET");
+			 uri =uriInfo.getBaseUriBuilder().path(AdministratorResource.class).path("Course")
+					.path(String.valueOf(courseSelection.getIdCourse()))
+					.build().toString();
+			newResp.addLink( uri, "see course:"+courseSelection.getCourseName(), "GET");
             ccrList.add(newResp);
 		}
 		GenericEntity<List<ClassCourseResponse>> e = new GenericEntity<List<ClassCourseResponse>>(ccrList) {};
@@ -520,20 +673,28 @@ public class AdministratorResource {
 	}
 	@Path("allClasses")
 	@GET
-	@Consumes(MediaType.APPLICATION_XML)
-	@Produces(MediaType.APPLICATION_XML)
+
 	 public Response seeClass(@Context UriInfo uriInfo,@Context HttpHeaders h) {
 		List<Classes>allC=classDao.findAll();
 		List<ClassResponse> allCResp=new ArrayList<ClassResponse>();
+		String uri;
 		for(Classes c : allC) {
 			ClassResponse cr= new ClassResponse();
 			cr.setIdClass(c.getIdClass());
 			cr.setClassName(c.getClassName());
-			String uri=uriInfo.getAbsolutePathBuilder().build().toString();
-    		cr.addLink(uri, "self", "GET");
-    		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
+			if (allCResp.isEmpty()) {
+				uri=uriInfo.getAbsolutePathBuilder().build().toString();
+	    		cr.addLink(uri, "self", "GET");
+	    		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
+	    				.build().toString();
+	            cr.addLink( uri, "general services", "GET");
+	            uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class).path("newClass")
+	    				.build().toString();
+	            cr.addLink( uri, "create new class", "POST");
+			}
+			uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class).path("Class").path(String.valueOf(c.getIdClass()))
     				.build().toString();
-            cr.addLink( uri, "general services", "GET");
+            cr.addLink( uri, "see class in specific", "GET");
             allCResp.add(cr);
 		}
 		GenericEntity<List<ClassResponse>> e = new GenericEntity<List<ClassResponse>>(allCResp) {};
@@ -543,10 +704,149 @@ public class AdministratorResource {
 			throw new NoContentException();
 			}
 	}
+	@Path("Class/{class_id}")
+	@GET
+	public Response createAssociationTeacher(@PathParam("class_id") int classId,
+			 @Context UriInfo uriInfo,@Context HttpHeaders h) {
+		Classes specifiClass= classDao.get(classId);
+		List<Course> courseList = courseDao.findAll();
+		if (specifiClass==null)
+			throw new DataNotFoundException();
+		ClassResponse cresp= new ClassResponse();
+		cresp.setIdClass(specifiClass.getIdClass());
+		cresp.setClassName(specifiClass.getClassName());
+		String uri=uriInfo.getAbsolutePathBuilder().build().toString();
+		cresp.addLink(uri, "self", "GET");
+		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class).path("studentsPerClass").path(String.valueOf(classId))
+				.build().toString();
+		cresp.addLink(uri, "see students of this class", "GET");
+		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class).path("enrollment")
+				.build().toString();
+    	cresp.addLink(uri, "enroll a new student","PUT");
+    	for(Course c: courseList) {
+    		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
+					.path("newClassCourse").path(String.valueOf(specifiClass.getIdClass()))
+					.path(String.valueOf(c.getIdCourse())).build().toString();
+			cresp.addLink(uri, "assign course to this class ", "POST");
+    	}
+		return Response.status(Response.Status.OK).entity(cresp).type(negotiation(h)).build();
+	}
+	@Path("Student/{stud_id}")
+	@GET
+	public Response getSpecificStudent(@PathParam("stud_id") int studId,
+			 @Context UriInfo uriInfo,@Context HttpHeaders h) {
+		Student specificStudent= studentDao.get(studId);
+		if (specificStudent==null)
+			throw new DataNotFoundException();
+		StudentResponse sresp= new StudentResponse();
+		sresp.setRollNo(specificStudent.getRollNo());
+		sresp.setLastName(specificStudent.getLastName());
+		sresp.setName(specificStudent.getName());
+		String uri=uriInfo.getAbsolutePathBuilder().build().toString();
+		sresp.addLink(uri, "self", "GET");
+		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
+				.build().toString();
+        sresp.addLink( uri, "general services", "GET");
+		return Response.status(Response.Status.OK).entity(sresp).type(negotiation(h)).build();
+	}
+	@Path("Parent/{parent_id}")
+	@GET
+	public Response getSpecificParent(@PathParam("parent_id") String parentId,
+			 @Context UriInfo uriInfo,@Context HttpHeaders h) {
+		Parent specificParent= parentDao.get(parentId);
+		if (specificParent==null)
+			throw new DataNotFoundException();
+		ParentResponse presp= new ParentResponse();
+		presp.setUsername(specificParent.getUsername());
+		presp.setSurname(specificParent.getSurname());
+		presp.setName(specificParent.getName());
+		presp.setPassword("*****");
+		String uri=uriInfo.getAbsolutePathBuilder().build().toString();
+		presp.addLink(uri, "self", "GET");
+		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
+				.build().toString();
+        presp.addLink( uri, "general services", "GET");
+        uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class).path(presp.getUsername())
+        		.path("newSon").build().toString();
+        presp.addLink( uri, "add new son", "POST");
+        return Response.status(Response.Status.OK).entity(presp).type(negotiation(h)).build();
+	}
+	
+	@Path("Teacher/{teacher_id}")
+	@GET
+	public Response getSpecificTeacher(@PathParam("teacher_id") String teacherId,
+			 @Context UriInfo uriInfo,@Context HttpHeaders h) {
+		List<Course> courseList= courseDao.findAll();
+		Teacher specificTeacher= teacherDao.get(teacherId);
+		if (specificTeacher==null)
+			throw new DataNotFoundException();
+		TeacherResponse tresp= new TeacherResponse();
+		tresp.setTeacherId(specificTeacher.getTeacherId());
+		tresp.setSurname(specificTeacher.getSurname());
+		tresp.setName(specificTeacher.getName());
+		tresp.setPassword("*****");
+		String uri=uriInfo.getAbsolutePathBuilder().build().toString();
+		tresp.addLink(uri, "self", "GET");
+		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
+				.build().toString();
+        tresp.addLink( uri, "general services", "GET");
+        uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class).path("newCourse")
+				.build().toString();
+        tresp.addLink(uri, "add new course", "POST");
+        for(Course c : courseList) {
+			if (c.getTeacher()==null) {
+				uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
+						.path("newTeacherCourse").path(specificTeacher.getTeacherId())
+						.path(Long.toString(c.getIdCourse())).build().toString();
+				tresp.addLink(uri, "assign to this course", "PUT");
+				
+			}
+		}
+        return Response.status(Response.Status.OK).entity(tresp).type(negotiation(h)).build();
+	}
+	@Path("Course/{course_id}")
+	@GET
+	public Response getSpecificParent(@PathParam("course_id") int courseId,
+			 @Context UriInfo uriInfo,@Context HttpHeaders h) {
+		Course specificCourse= courseDao.get(courseId);
+		List<Classes> classesList= classDao.findAll();
+		if (specificCourse==null)
+			throw new DataNotFoundException();
+		List<Teacher> teacherList=teacherDao.findAll();
+		CourseResponse cresp= new CourseResponse();
+		cresp.setIdCourse(specificCourse.getIdCourse());
+		cresp.setClassRoom(specificCourse.getClassRoom());
+		cresp.setCourseName(specificCourse.getCourseName());
+		cresp.setCourseDescription(specificCourse.getCourseDescription());
+		String uri=uriInfo.getAbsolutePathBuilder().build().toString();
+		cresp.addLink(uri, "self", "GET");
+		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
+				.build().toString();
+        cresp.addLink( uri, "general services", "GET");
+        uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class).path("newTeacher")
+        		.build().toString();
+        cresp.addLink( uri, "add new teacher", "POST");
+        for(Teacher t : teacherList) {
+		
+			uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
+					.path("newTeacherCourse").path(t.getTeacherId())
+					.path(Long.toString(specificCourse.getIdCourse())).build().toString();
+			cresp.addLink(uri, "assign teacher to this course", "PUT");
+
+		}
+        for(Classes c : classesList) {
+    		
+			uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
+					.path("newClassCourse").path(String.valueOf(c.getIdClass()))
+					.path(String.valueOf(specificCourse.getIdCourse())).build().toString();
+			cresp.addLink(uri, "assign class to this course ", "POST");
+
+		}
+        return Response.status(Response.Status.OK).entity(cresp).type(negotiation(h)).build();
+	}
 	@Path("newTeacherCourse/{teacher_id}/{course_id}")
 	@PUT
-	@Consumes(MediaType.APPLICATION_XML)
-	@Produces(MediaType.APPLICATION_XML)
+
 	 public Response createAssociationTeacher(@PathParam("teacher_id") String teacherId,
 			 @PathParam("course_id") int courseId,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 		Course course= courseDao.get(courseId);
@@ -559,6 +859,12 @@ public class AdministratorResource {
 		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
 				.build().toString();
         addLinkToList(uris, uri, "general services", "GET");
+        uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class).path("Teacher").path(teacher.getTeacherId())
+				.build().toString();
+        addLinkToList(uris, uri, "see associate teacher", "GET");
+        uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class).path("Course").path(String.valueOf(course.getIdCourse()))
+				.build().toString();
+        addLinkToList(uris, uri, "see associate course", "GET");
 		GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
 		if (course!= null && teacher!= null && teacherDao.update(teacher) && courseDao.update(course)) {
 			 return Response.status(Response.Status.OK).entity(e).type(negotiation(h)).build();
@@ -567,12 +873,11 @@ public class AdministratorResource {
 		 }
 	@Path("newClassCourse/{class_id}/{course_id}")
 	@POST
-	@Consumes(MediaType.APPLICATION_XML)
-	@Produces(MediaType.APPLICATION_XML)
+
 	 public Response createAssociationClass(@PathParam("class_id") int classId,
 			 @PathParam("course_id") int courseId,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 		Course course= courseDao.get(courseId);
-		Classes teacher = classDao.get(classId);
+		Classes class1 = classDao.get(classId);
 		CourseClassAssociation cca = new CourseClassAssociation();
 		cca.setPrimaryKey(new CourseClassAssociation_Id());
 		cca.getPrimaryKey().setClass_id(classId);
@@ -583,16 +888,21 @@ public class AdministratorResource {
 		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
 				.build().toString();
         addLinkToList(uris, uri, "general services", "GET");
+        uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class).path("Class").path(String.valueOf(class1.getIdClass()))
+				.build().toString();
+        addLinkToList(uris, uri, "see associated class", "GET");
+        uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class).path("Course").path(String.valueOf(course.getIdCourse()))
+				.build().toString();
+        addLinkToList(uris, uri, "general services", "GET");
 		GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
-		if (course!= null && teacher!= null && ccaDao.create(cca)) {
+		if (course!= null && class1!= null && ccaDao.create(cca)) {
 			 return Response.status(Response.Status.CREATED).entity(e).type(negotiation(h)).build();
 		}
 		 throw new DataNotFoundException();
 		 }
 	@Path("newPayment")
 	@POST
-	@Consumes(MediaType.APPLICATION_XML)
-	@Produces(MediaType.APPLICATION_XML)
+
 	 public Response issuePayment(PaymentWrapper newPW,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 
 		
@@ -619,10 +929,9 @@ public class AdministratorResource {
 			 throw new DataNotFoundException();
 		}
 
-	@Path("timeTable/{course_id}")
+	@Path("TimeTable/{course_id}")
 	@POST
-	@Consumes(MediaType.APPLICATION_XML)
-	@Produces(MediaType.APPLICATION_XML)
+
     public Response create(@PathParam("course_id")int id ,TimeTableWrapper newHours
     		,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 		System.out.println("entro");
