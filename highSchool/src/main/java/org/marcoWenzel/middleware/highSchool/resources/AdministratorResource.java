@@ -1,5 +1,6 @@
 package org.marcoWenzel.middleware.highSchool.resources;
 
+import java.sql.Time;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -64,6 +65,7 @@ import org.marcoWenzel.middleware.highSchool.response.CourseResponse;
 import org.marcoWenzel.middleware.highSchool.response.ParentResponse;
 import org.marcoWenzel.middleware.highSchool.response.StudentResponse;
 import org.marcoWenzel.middleware.highSchool.response.TeacherResponse;
+import org.marcoWenzel.middleware.highSchool.response.TimeTableResponse;
 import org.marcoWenzel.middleware.highSchool.util.Category;
 import org.marcoWenzel.middleware.highSchool.util.Link;
 import org.marcoWenzel.middleware.highSchool.util.Secured;
@@ -97,6 +99,7 @@ public class AdministratorResource {
 	CCAssotiationDAO ccaDao = new CCAssotiationDAO();
 	Calendar cal = Calendar.getInstance();
     SimpleDateFormat sdf = new SimpleDateFormat("YYYY-MM-DD HH:mm:ss");
+    SimpleDateFormat timeTablesdf = new SimpleDateFormat("HH:mm:ss");
    
 	@GET 
 	@Path("allCourses")
@@ -302,9 +305,9 @@ public class AdministratorResource {
 				.build().toString();
 		addLinkToList(uris, uri, "issue new payment", "POST");
 		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
-				.path("newCourse")
+				.path("newClass")
 				.build().toString();
-		addLinkToList(uris, uri, "create new course", "POST");
+		addLinkToList(uris, uri, "create new class", "POST");
 		uri=uriInfo.getBaseUriBuilder().path(NotificationResource.class)
 				.path("newParentNotif").path("user_id")
 				.build().toString();
@@ -638,30 +641,33 @@ public class AdministratorResource {
 			Course courseSelection=null;
 			newResp.setClassName(c.getClassName());
 			newResp.setCourseList(new ArrayList<String>());
+			String uri;
+			if (ccrList.isEmpty()) {
+				uri=uriInfo.getAbsolutePathBuilder().build().toString();
+	    		newResp.addLink(uri, "self", "GET");
+	    		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
+	    				.build().toString();
+	            newResp.addLink( uri, "general services", "GET");        
+			}
 			for (CourseClassAssociation cca : listCca) {
 				if (cca.getPrimaryKey().getClass_id()==c.getIdClass()) {
 					courseSelection= courseDao.get(cca.getPrimaryKey().getCourse_id());
 					newResp.getCourseList().add(courseSelection.getCourseName());
+					uri =uriInfo.getBaseUriBuilder().path(AdministratorResource.class).path("Course")
+							.path(String.valueOf(courseSelection.getIdCourse()))
+							.build().toString();
+					newResp.addLink( uri, "see course:"+courseSelection.getCourseName(), "GET");
 				}
 			}
-			if (ccrList.isEmpty()) {
-				String uri=uriInfo.getAbsolutePathBuilder().build().toString();
-	    		newResp.addLink(uri, "self", "GET");
-	    		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
-	    				.build().toString();
-	            newResp.addLink( uri, "general services", "GET");
-	            
-	            
-			}
-			String uri =uriInfo.getBaseUriBuilder().path(AdministratorResource.class).path("Class")
+			
+			uri =uriInfo.getBaseUriBuilder().path(AdministratorResource.class).path("Class")
 					.path(String.valueOf(c.getIdClass()))
 					.build().toString();
 			newResp.addLink( uri, "see class:"+c.getClassName(), "GET");
-			 uri =uriInfo.getBaseUriBuilder().path(AdministratorResource.class).path("Course")
-					.path(String.valueOf(courseSelection.getIdCourse()))
-					.build().toString();
-			newResp.addLink( uri, "see course:"+courseSelection.getCourseName(), "GET");
+			
+		
             ccrList.add(newResp);
+     
 		}
 		GenericEntity<List<ClassCourseResponse>> e = new GenericEntity<List<ClassCourseResponse>>(ccrList) {};
 		if(ccrList.size()>0) {
@@ -723,11 +729,15 @@ public class AdministratorResource {
 		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class).path("enrollment")
 				.build().toString();
     	cresp.addLink(uri, "enroll a new student","PUT");
+    	uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class).path("TimeTable")
+    			.path(String.valueOf(classId))
+				.build().toString();
+    	cresp.addLink(uri, "see the timeTable class","PUT");
     	for(Course c: courseList) {
     		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
 					.path("newClassCourse").path(String.valueOf(specifiClass.getIdClass()))
 					.path(String.valueOf(c.getIdCourse())).build().toString();
-			cresp.addLink(uri, "assign course to this class ", "POST");
+			cresp.addLink(uri, "assign "+c.getCourseName()+" course to this class ", "POST");
     	}
 		return Response.status(Response.Status.OK).entity(cresp).type(negotiation(h)).build();
 	}
@@ -929,20 +939,81 @@ public class AdministratorResource {
 			 throw new DataNotFoundException();
 		}
 
+	
+	@Path("TimeTable/{class_id}")
+	@GET
+	 public Response seeClassTimeTable(@PathParam("class_id")int id 
+	    		,@Context UriInfo uriInfo,@Context HttpHeaders h) throws ParseException {
+		Classes classTT= classDao.get(id);
+		if(classTT==null)
+			throw new DataNotFoundException();
+		List <CourseClassAssociation> listCca= ccaDao.findAll();
+		List<Integer> listOfCourses = new ArrayList<Integer>();
+		for(CourseClassAssociation cca : listCca) {
+			if (classTT.getIdClass()==cca.getPrimaryKey().getClass_id()) 
+				listOfCourses.add(cca.getPrimaryKey().getCourse_id());	
+		}
+		System.out.println("loc: "+listOfCourses);
+		List<TimeTableResponse> ttList= new ArrayList<TimeTableResponse>();
+		List<TimeTable> timeTableList=timeTableDao.findAll();
+		String uri;
+		for(TimeTable tt: timeTableList) {
+			if (listOfCourses.contains(tt.getIdTime().getCourseId())) {
+				TimeTableResponse ttresp= new TimeTableResponse();
+				ttresp.setClassRoom(tt.getClassRoom());
+				ttresp.setCourseId(tt.getIdTime().getCourseId());
+				ttresp.setDay(tt.getIdTime().getDay());
+				String c=timeTablesdf.format(tt.getIdTime().getStartingTime());
+				ttresp.setStartingTime(c);
+				c=timeTablesdf.format(tt.getIdTime().getFinishTime());	
+				ttresp.setFinishTime(c);
+				ttList.add(ttresp);
+				if (ttList.isEmpty()) {
+					uri=uriInfo.getAbsolutePathBuilder().build().toString();
+					ttresp.addLink(uri, "self", "GET");
+					uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
+							.build().toString();
+					ttresp.addLink(uri, "general services", "GET");
+					uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class).path("TimeTable")
+							.path("course_id")
+							.build().toString();
+					ttresp.addLink(uri, "general services", "GET");
+				}
+				
+			}
+		}
+		GenericEntity<List<TimeTableResponse>> e = new GenericEntity<List<TimeTableResponse>>(ttList) {};
+		if (!ttList.isEmpty())
+			return Response.status(Response.Status.OK).entity(e).type(negotiation(h)).build();
+		else
+			throw new NoContentException();
+	}
+	
+	
+	
 	@Path("TimeTable/{course_id}")
 	@POST
 
     public Response create(@PathParam("course_id")int id ,TimeTableWrapper newHours
     		,@Context UriInfo uriInfo,@Context HttpHeaders h) {
+		
 		System.out.println("entro");
 		System.out.println(newHours.getFinishTime());
 		TimeTable newH = new TimeTable();
 		newH.setIdTime(new TimeTable_Id());
-		newH.setClassRoom(newHours.getClassRoom());
+		
+		
+		if (id!=newHours.getCourseId()) {
+			throw new DataNotFoundException();
+		}
+		Course c = courseDao.get(id);
+		newH.setClassRoom(c.getClassRoom());
 		newH.getIdTime().setCourseId(newHours.getCourseId());
 		newH.getIdTime().setStartingTime(newHours.getStartingTime());
 		newH.getIdTime().setFinishTime(newHours.getFinishTime());
 		newH.getIdTime().setDay(newHours.getDay());
+		
+		System.out.println(newHours.getDay());
 		List<Link> uris = new ArrayList<Link>();
 		String uri=uriInfo.getAbsolutePathBuilder().build().toString();
 		addLinkToList(uris, uri, "self", "POST");
@@ -950,7 +1021,7 @@ public class AdministratorResource {
 				.build().toString();
         addLinkToList(uris, uri, "general services", "GET");
 		GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
-		 if ( timeTableDao.create(newH)) {
+		if ( timeTableDao.create(newH)) {
 	        return Response.status(Response.Status.CREATED).entity(e).type(negotiation(h)).build();
 	    }
 	    else {

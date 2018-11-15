@@ -1,5 +1,7 @@
 package org.marcoWenzel.middleware.highSchool.resources;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -25,6 +27,7 @@ import javax.ws.rs.core.UriInfo;
 import org.marcoWenzel.middleware.highSchool.dao.AbstractDAO;
 import org.marcoWenzel.middleware.highSchool.dao.AppointmentDAO;
 import org.marcoWenzel.middleware.highSchool.dao.CCAssotiationDAO;
+import org.marcoWenzel.middleware.highSchool.dao.ClassDAO;
 import org.marcoWenzel.middleware.highSchool.dao.CourseDAO;
 import org.marcoWenzel.middleware.highSchool.dao.EvaluationDAO;
 import org.marcoWenzel.middleware.highSchool.dao.NotificationDAO;
@@ -34,7 +37,7 @@ import org.marcoWenzel.middleware.highSchool.dao.TimeTableDAO;
 import org.marcoWenzel.middleware.highSchool.exception.DataNotFoundException;
 import org.marcoWenzel.middleware.highSchool.exception.NoContentException;
 import org.marcoWenzel.middleware.highSchool.model.Appointment;
-
+import org.marcoWenzel.middleware.highSchool.model.Classes;
 import org.marcoWenzel.middleware.highSchool.model.Course;
 import org.marcoWenzel.middleware.highSchool.model.CourseClassAssociation;
 import org.marcoWenzel.middleware.highSchool.model.Evaluation;
@@ -71,6 +74,9 @@ public class TeacherResource {
 	CCAssotiationDAO ccaDao = new CCAssotiationDAO();
 	StudentDAO studentDao=new StudentDAO();
 	NotificationDAO notificationDao= new NotificationDAO();
+	ClassDAO classDao = new ClassDAO();
+	SimpleDateFormat timeTablesdf = new SimpleDateFormat("HH:mm:ss");
+	TimeTableDAO timeTableDao = new TimeTableDAO();
 	@GET
 	@Produces(MediaType.APPLICATION_XML)
 	public Response getTeacherServices(@PathParam("user_id")String id,@Context UriInfo uriInfo,@Context HttpHeaders h) {
@@ -243,44 +249,56 @@ public class TeacherResource {
             	throw new NoContentException();
             	}
     }
-//potrebbe mancare metodo di visione singolare dei corsi e/o degli studenti	
-    @Path("Classes/{class_id}/timeTable")
+	@Path("TimeTable/{class_id}")
 	@GET
-	@Produces(MediaType.APPLICATION_XML)
-    public Response  getTimeTable(@PathParam("user_id") String id,@PathParam("class_id") int classId
-    		,@Context UriInfo uriInfo,@Context HttpHeaders h) {
-		List<TimeTable> tableList =timetableDao.findAll();
-		List<TimeTableResponse> newList = new ArrayList<>();
+	 public Response seeClassTimeTable(@PathParam("class_id")int id 
+	    		,@Context UriInfo uriInfo,@Context HttpHeaders h) throws ParseException {
+		Classes classTT= classDao.get(id);
+		if(classTT==null)
+			throw new DataNotFoundException();
+		List <CourseClassAssociation> listCca= ccaDao.findAll();
+		List<Integer> listOfCourses = new ArrayList<Integer>();
+		for(CourseClassAssociation cca : listCca) {
+			if (classTT.getIdClass()==cca.getPrimaryKey().getClass_id()) 
+				listOfCourses.add(cca.getPrimaryKey().getCourse_id());	
+		}
+		System.out.println("loc: "+listOfCourses);
+		List<TimeTableResponse> ttList= new ArrayList<TimeTableResponse>();
+		List<TimeTable> timeTableList=timeTableDao.findAll();
 		String uri;
-		for (TimeTable tt : tableList) {
-			if (tt.getIdTime().getCourseId()==classId) {
-				TimeTableResponse newResp = new TimeTableResponse();
-				newResp.setClassRoom(tt.getClassRoom());
-				newResp.setCourseId(tt.getIdTime().getCourseId());
-				newResp.setDay(tt.getIdTime().getDay());
-				newResp.setStartingTime(tt.getIdTime().getStartingTime());
-				newResp.setFinishTime(tt.getIdTime().getFinishTime());
-				uri=uriInfo.getAbsolutePathBuilder().build().toString();
-				newResp.addLink(uri, "self", "GET");
-				uri=uriInfo.getBaseUriBuilder().path(TeacherResource.class)
-						.resolveTemplate("user_id", id).path("Classes")
-						.path(Long.toString(classId)).path("students")
-						.build().toString();
-				newResp.addLink(uri, "students", "GET");
-				uri=uriInfo.getBaseUriBuilder().path(TeacherResource.class)
-	    				.resolveTemplate("user_id",id).build().toString();
-	        	newResp.addLink(uri, "general services","GET");
-				newList.add(newResp);
+		for(TimeTable tt: timeTableList) {
+			if (listOfCourses.contains(tt.getIdTime().getCourseId())) {
+				TimeTableResponse ttresp= new TimeTableResponse();
+				ttresp.setClassRoom(tt.getClassRoom());
+				ttresp.setCourseId(tt.getIdTime().getCourseId());
+				ttresp.setDay(tt.getIdTime().getDay());
+				String c=timeTablesdf.format(tt.getIdTime().getStartingTime());
+				ttresp.setStartingTime(c);
+				c=timeTablesdf.format(tt.getIdTime().getFinishTime());	
+				ttresp.setFinishTime(c);
+				ttList.add(ttresp);
+				if (ttList.isEmpty()) {
+					uri=uriInfo.getAbsolutePathBuilder().build().toString();
+					ttresp.addLink(uri, "self", "GET");
+					uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
+							.build().toString();
+					ttresp.addLink(uri, "general services", "GET");
+					uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class).path("TimeTable")
+							.path("course_id")
+							.build().toString();
+					ttresp.addLink(uri, "general services", "GET");
+				}
+				
 			}
 		}
-		GenericEntity<List<TimeTableResponse>> e = new GenericEntity<List<TimeTableResponse>>(newList) {};
-		 if (newList.size()>0) {
-	            return Response.status(Response.Status.OK).entity(e).type(negotiation(h)).build();
-	        }
-	        else {
-	        	throw new NoContentException();
-	        	}
+		GenericEntity<List<TimeTableResponse>> e = new GenericEntity<List<TimeTableResponse>>(ttList) {};
+		if (!ttList.isEmpty())
+			return Response.status(Response.Status.OK).entity(e).type(negotiation(h)).build();
+		else
+			throw new NoContentException();
 	}
+	
+	
     
     @POST
 	@Path("Classes/{course_id}/students/{stud_id}/newMark")

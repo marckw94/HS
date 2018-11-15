@@ -12,8 +12,8 @@ public class TimeTableResponse {
 	
 		 private String classRoom;
 		 private int courseId;
-		 private Date startingTime;
-		 private Date finishTime;
+		 private String startingTime;
+		 private String finishTime;
 		 private String day;
 		 private List<Link> links  = new ArrayList<>();
 		public List<Link> getLinks() {
@@ -34,16 +34,18 @@ public class TimeTableResponse {
 		public void setCourseId(int courseId) {
 			this.courseId = courseId;
 		}
-		public Date getStartingTime() {
+	
+	
+		public String getStartingTime() {
 			return startingTime;
 		}
-		public void setStartingTime(Date startingTime) {
+		public void setStartingTime(String startingTime) {
 			this.startingTime = startingTime;
 		}
-		public Date getFinishTime() {
+		public String getFinishTime() {
 			return finishTime;
 		}
-		public void setFinishTime(Date finishTime) {
+		public void setFinishTime(String finishTime) {
 			this.finishTime = finishTime;
 		}
 		public String getDay() {

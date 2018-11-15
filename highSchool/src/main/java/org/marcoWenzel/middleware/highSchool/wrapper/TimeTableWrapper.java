@@ -2,22 +2,19 @@ package org.marcoWenzel.middleware.highSchool.wrapper;
 
 import java.util.Date;
 
+import javax.persistence.Table;
 import javax.xml.bind.annotation.XmlRootElement;
 
-@XmlRootElement
 
+@XmlRootElement
+@Table
 public class TimeTableWrapper {
-	 private String classRoom;
+
 	 private int courseId;
 	 private Date startingTime;
 	 private Date finishTime;
 	 private String day;
-	public String getClassRoom() {
-		return classRoom;
-	}
-	public void setClassRoom(String classRoom) {
-		this.classRoom = classRoom;
-	}
+	
 	public int getCourseId() {
 		return courseId;
 	}
