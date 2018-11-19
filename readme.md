@@ -1,4 +1,4 @@
 TEST
 
 
-[LINK to Plot](https://github.com/marckw94/HS/edit/master/lines.html)
+[LINK to Plot](https://marckw94.github.io/HS/lines.html)
