@@ -60,7 +60,9 @@ import org.marcoWenzel.middleware.highSchool.wrapper.PayRequest;
 import org.marcoWenzel.middleware.highSchool.wrapper.PaymentWrapper;
 import org.marcoWenzel.middleware.highSchool.wrapper.Wrapper;
 @Secured({Category.Parent})
-@Path("parent/{user_id}")
+@Consumes({MediaType.APPLICATION_JSON,MediaType.APPLICATION_XML})
+@Produces({MediaType.APPLICATION_JSON,MediaType.APPLICATION_XML})
+@Path("Parent/{user_id}")
 public class ParentResource{
 	ParentDAO parentDao = new ParentDAO();
 	StudentDAO studentDao = new StudentDAO();
@@ -74,7 +76,6 @@ public class ParentResource{
 	@Context
 	UriInfo uriInfo;
 	@GET
-	@Produces(MediaType.APPLICATION_XML)
 	public Response getParentServices(@PathParam("user_id")String id,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 		List<Link> uris = new ArrayList<Link>();
 		String uri = uriInfo.getAbsolutePathBuilder().build().toString();
@@ -84,21 +85,25 @@ public class ParentResource{
 				.build().toString();
 		addLinkToList(uris, uri, "see personal", "GET");
 		uri=uriInfo.getBaseUriBuilder().path(ParentResource.class)
-				.resolveTemplate("user_id",id).path("appointments")
+				.resolveTemplate("user_id",id).path("children")
 				.build().toString();
-		addLinkToList(uris, uri, "see appointments", "GET");
+		addLinkToList(uris, uri, "see children", "GET");
+		uri=uriInfo.getBaseUriBuilder().path(AppointmentResource.class)
+				.resolveTemplate("user_id",id).path("allAppointments")
+				.build().toString();
+		addLinkToList(uris, uri, "see all appointments", "GET");
 		uri=uriInfo.getBaseUriBuilder().path(AppointmentResource.class)
 				.resolveTemplate("user_id",id)
 				.build().toString();
 		addLinkToList(uris, uri, "new appointment", "POST");
 		uri=uriInfo.getBaseUriBuilder().path(ParentResource.class)
-				.resolveTemplate("user_id",id).path("History")
+				.resolveTemplate("user_id",id).path("allPaid")
 				.build().toString();
-		addLinkToList(uris, uri, "see history payments", "GET");
+		addLinkToList(uris, uri, "see all paid payments", "GET");
 		uri=uriInfo.getBaseUriBuilder().path(ParentResource.class)
-				.resolveTemplate("user_id",id).path("Payments")
+				.resolveTemplate("user_id",id).path("allPending")
 				.build().toString();
-		addLinkToList(uris, uri, "see upcoming payments", "GET");
+		addLinkToList(uris, uri, "see all pending payments", "GET");
 		uri=uriInfo.getBaseUriBuilder().path(ParentResource.class)
 				.resolveTemplate("user_id",id).path("pubNotif")
 				.build().toString();
@@ -114,7 +119,7 @@ public class ParentResource{
 	
 	@Path("personal")
 	@GET
-	@Produces(MediaType.APPLICATION_XML)
+
     public Response  getPersonalData(@PathParam("user_id") String id,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 	
 		
@@ -128,8 +133,8 @@ public class ParentResource{
         	parentInterface.addLink(uri, "self","GET");
         	uri=uriInfo.getAbsolutePathBuilder().build().toString();
         	parentInterface.addLink(uri, "modify self","PUT");
-        	uri = uriInfo.getBaseUriBuilder().path("parent").path(id).path("sons").build().toString();
-        	parentInterface.addLink(uri, "sons","GET");
+        	uri = uriInfo.getBaseUriBuilder().path("parent").path(id).path("children").build().toString();
+        	parentInterface.addLink(uri, "see children","GET");
         	uri=uriInfo.getBaseUriBuilder().path(ParentResource.class)
     				.resolveTemplate("user_id",id).build().toString();
         	parentInterface.addLink(uri, "general services","GET");
@@ -144,8 +149,7 @@ public class ParentResource{
 //triggerare nel caso di password	
 	@PUT
 	@Path("personal")
-	@Produces(MediaType.APPLICATION_XML)
-	@Consumes(MediaType.APPLICATION_XML)
+
 	public Response setParentPersonal(ParentWrapper parIn,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 		
 		Parent updateParent = parentDao.get(parIn.getUsername());
@@ -169,9 +173,8 @@ public class ParentResource{
 	}
 	
 	@GET
-	@Path("sons")
-	@Consumes(MediaType.APPLICATION_XML)
-	@Produces(MediaType.APPLICATION_XML)
+	@Path("children")
+
     public Response  getSonsList(@PathParam("user_id") String id,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 		List<StudentResponse> studentInterfaces = new ArrayList<StudentResponse>();
     	Parent thisParent = parentDao.get(id);
@@ -184,11 +187,18 @@ public class ParentResource{
     		studentInterface.setLastName(i.getLastName());
     		studentInterface.setName(i.getName());
     		studentInterface.setRollNo(i.getRollNo());
-    		String uri=uriInfo.getBaseUriBuilder().path("parent").path(id).path("son").path(Long.toString(i.getRollNo())).build().toString();
-        	studentInterface.addLink(uri, "self","GET");
-        	uri=uriInfo.getBaseUriBuilder().path(ParentResource.class)
-    				.resolveTemplate("user_id",id).build().toString();
-        	studentInterface.addLink(uri, "general services","GET");
+    		String uri;
+    		if (studentInterfaces.isEmpty()) {
+	    		uri=uriInfo.getBaseUriBuilder().path("parent").path(id).path("son").path(Long.toString(i.getRollNo())).build().toString();
+	        	studentInterface.addLink(uri, "self","GET");
+	        	uri=uriInfo.getBaseUriBuilder().path(ParentResource.class)
+	    				.resolveTemplate("user_id",id).build().toString();
+	        	studentInterface.addLink(uri, "general services","GET");
+    		}
+    		uri=uriInfo.getBaseUriBuilder().path(ParentResource.class)
+    				.resolveTemplate("user_id",id).path("child").path(String.valueOf(studentInterface.getRollNo()))
+    				.build().toString();
+    		studentInterface.addLink(uri, "see child in specific","GET");
     		studentInterfaces.add(studentInterface);
     	}
     	GenericEntity<List<StudentResponse>> e = new GenericEntity<List<StudentResponse>>(studentInterfaces) {};
@@ -200,9 +210,8 @@ public class ParentResource{
     }
 	
 	@GET
-	@Path("son/{roll_id}")
-	@Consumes(MediaType.APPLICATION_XML)
-	@Produces(MediaType.APPLICATION_XML)
+	@Path("child/{roll_id}")
+
     public Response  sonByRollNum(@PathParam("user_id") String id,@PathParam("roll_id")int rollNum,@Context HttpHeaders h,@Context UriInfo uriInfo) {
     	StudentResponse studentInterface= null;
 		Parent thisParent = parentDao.get(id);
@@ -218,8 +227,11 @@ public class ParentResource{
 		    	studentInterface.addLink(uri, "self","GET");
 		    	studentInterface.addLink(uri, "modify self","PUT");
 		    	uri=uriInfo.getBaseUriBuilder().path("parent").path(id).
-		    			path("son").path(Long.toString(i.getRollNo())).path("marks").build().toString();
+		    			path("child").path(Long.toString(i.getRollNo())).path("marks").build().toString();
 		    	studentInterface.addLink(uri, "marks","GET");
+		    	uri=uriInfo.getBaseUriBuilder().path("parent").path(id).
+		    			path("children").build().toString();
+		    	studentInterface.addLink(uri, "see all children of this parent","GET");
 		    	uri=uriInfo.getBaseUriBuilder().path(ParentResource.class)
 	    				.resolveTemplate("user_id",id).build().toString();
 	        	studentInterface.addLink(uri, "general services","GET");
@@ -233,9 +245,8 @@ public class ParentResource{
         }
     }
 	@PUT
-	@Path("son/{roll_id}")
-	@Produces(MediaType.APPLICATION_XML)
-	@Consumes(MediaType.APPLICATION_XML)
+	@Path("child/{roll_id}")
+
 	public Response setSonPersonal(@PathParam("user_id") String id,@PathParam("roll_id")int rollNum,Wrapper sonIn,
 			@Context UriInfo uriInfo,@Context HttpHeaders h) {
 		Parent parent= parentDao.get(id);
@@ -265,9 +276,9 @@ public class ParentResource{
 		 throw new DataNotFoundException();
 		 }
 	
-	@Path("son/{son_id}/marks")
+	@Path("child/{son_id}/marks")
 	@GET
-	@Produces(MediaType.APPLICATION_XML)
+
     public Response getMarkSon(@PathParam("user_id") String id,@PathParam("son_id") int n_stud,
     		@Context UriInfo uriInfo,@Context HttpHeaders h) {
 		List< EvaluationResponse> newListofResp = new ArrayList<EvaluationResponse>();
@@ -284,15 +295,18 @@ public class ParentResource{
         			System.out.println("idStud " + i.getRollNo());
         			if (i.getRollNo()==cc.getId().getStudentId().getRollNo()) {
         				newResp=new EvaluationResponse();
-        				newResp.getCw().setCourseName(cc.getId().getCourseId().getCourseName());
-        				newResp.getSw().setLastName(i.getLastName());
+        				//newResp.setCourseName(cc.getId().getCourseId().getCourseName());
+        				//newResp.getSw().setLastName(i.getLastName());
         				newResp.setMark(cc.getMark());
         				String uri= uriInfo.getAbsolutePathBuilder().build().toString();
         				newResp.addLink(uri, "self", "GET");
         				uri=uriInfo.getBaseUriBuilder().path(ParentResource.class)
         	    				.resolveTemplate("user_id",id).build().toString();
         	        	newResp.addLink(uri, "general services","GET");
-        				newListofResp.add(newResp);		
+        				newListofResp.add(newResp);
+        				uri=uriInfo.getBaseUriBuilder().path("parent").path(id).
+        		    			path("children").build().toString();
+        		    	newResp.addLink(uri, "see all children of this parent","GET");
         			}
         		}
         	}
@@ -306,9 +320,9 @@ public class ParentResource{
 	}
     
 
-	@Path("appointments")
+	@Path("allAppointments")
 	@GET
-	@Produces(MediaType.APPLICATION_XML)
+
     public Response  getAppointment(@PathParam("user_id") String id,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 		
 		List< AppointmentResponse> ds = new ArrayList<AppointmentResponse>();
@@ -346,13 +360,11 @@ public class ParentResource{
 	//sistemaere struttura tabella appointment
 	@PUT
 	@Path("setAppointments/{appoint_id}")
-	@Consumes(MediaType.APPLICATION_XML)
-	@Produces(MediaType.APPLICATION_XML)
+
     public Response  setAppointment(@PathParam("user_id") String parentid,@PathParam("appoint_id") int appId,
     		AppointmentWrapper upApp,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 		Appointment oldApp= appointmentDao.get(appId);
-		if(appId!=upApp.getAppointmentId())
-			 throw new DataNotFoundException();
+		
 		if(oldApp==null)
 			 throw new DataNotFoundException();
 		if(upApp.getParentUsername().equals(oldApp.getParentId()) && upApp.getTeacherId().equals(oldApp.getTeacherId())
@@ -380,8 +392,7 @@ public class ParentResource{
 	
 	@DELETE
 	@Path("setAppointments/{appoint_id}")
-	@Consumes(MediaType.APPLICATION_XML)
-	@Produces(MediaType.APPLICATION_XML)
+
     public Response  deleteAppointment(@PathParam("user_id") String teacherid,@PathParam("appoint_id") int AppId,
     		AppointmentWrapper upApp,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 		Appointment oldApp= appointmentDao.get(AppId);
@@ -408,9 +419,9 @@ public class ParentResource{
 
 		 throw new DataNotFoundException();
 		 }
-	@Path("History")
+	@Path("Payment/allPaid")
 	@GET
-	@Produces(MediaType.APPLICATION_XML)
+
     public Response  getPaymentHistory(@PathParam("user_id") String id,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 		
 		List<Payement> ds = paymentDao.findAll();
@@ -429,14 +440,17 @@ public class ParentResource{
     			ps.setPayed(p.isPayed());
     			ps.setNotificationDate(p.getNotificationDate());
     			ps.setPayementDate(p.getPayementDate());
-    			String uri=uriInfo.getAbsolutePathBuilder().build().toString();
-				ps.addLink( uri, "self", "GET");
-				uri= uriInfo.getBaseUriBuilder().path(ParentResource.class)
-						.resolveTemplate("user_id",id).path("Payments").build().toString();
-				ps.addLink(uri, "Upcoming Payments", "GET");
-				uri=uriInfo.getBaseUriBuilder().path(ParentResource.class)
-	    				.resolveTemplate("user_id",id).build().toString();
-	        	ps.addLink(uri, "general services","GET");
+    			String uri;
+    			if (newDs.isEmpty()) {
+	    			uri=uriInfo.getAbsolutePathBuilder().build().toString();
+					ps.addLink( uri, "self", "GET");
+					uri= uriInfo.getBaseUriBuilder().path(ParentResource.class)
+							.resolveTemplate("user_id",id).path("Payment").path("allPending").build().toString();
+					ps.addLink(uri, "see pending payments", "GET");
+					uri=uriInfo.getBaseUriBuilder().path(ParentResource.class)
+		    				.resolveTemplate("user_id",id).build().toString();
+		        	ps.addLink(uri, "general services","GET");
+    			}
     			newDs.add(ps);
     		}
     	}
@@ -450,9 +464,9 @@ public class ParentResource{
     
 	}
 	
-	@Path("Payments")
+	@Path("Payment/allPending")
 	@GET
-	@Produces(MediaType.APPLICATION_XML)
+
     public Response getUpcomingPayment(@PathParam("user_id") String id,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 		List<Payement> ds = new ArrayList<Payement>();
 		List<PaymentResponse> newDs = new ArrayList<PaymentResponse>();
@@ -471,16 +485,23 @@ public class ParentResource{
     			ps.setPayed(p.isPayed());
     			ps.setNotificationDate(p.getNotificationDate());
     			ps.setPayementDate(p.getPayementDate());
-    			String uri=uriInfo.getAbsolutePathBuilder().build().toString();
-				ps.addLink( uri, "self", "GET");
-				uri=uriInfo.getAbsolutePathBuilder().path(Long.toString(ps.getPayID())).build().toString();
+    			String uri;
+    			if(newDs.isEmpty()) {
+					uri=uriInfo.getAbsolutePathBuilder().build().toString();
+					ps.addLink( uri, "self", "GET");
+					
+					uri= uriInfo.getBaseUriBuilder().path(ParentResource.class)
+							.resolveTemplate("user_id",id).path("Payment").path("allPaid").build().toString();
+					ps.addLink(uri, "see all paid payments", "GET");
+					uri=uriInfo.getBaseUriBuilder().path(ParentResource.class)
+		    				.resolveTemplate("user_id",id).build().toString();
+		        	ps.addLink(uri, "general services","GET");
+    			}
+    			uri=uriInfo.getBaseUriBuilder().path(ParentResource.class)
+	    				.resolveTemplate("user_id",id)
+	    				.path("Payment").path(String.valueOf(ps.getPayID()))
+	    				.build().toString();
 				ps.addLink( uri, "pay this payment", "PUT");
-				uri= uriInfo.getBaseUriBuilder().path(ParentResource.class)
-						.resolveTemplate("user_id",id).path("History").build().toString();
-				ps.addLink(uri, "history payments", "GET");
-				uri=uriInfo.getBaseUriBuilder().path(ParentResource.class)
-	    				.resolveTemplate("user_id",id).build().toString();
-	        	ps.addLink(uri, "general services","GET");
     			newDs.add(ps);
     		}
     	}
@@ -495,10 +516,9 @@ public class ParentResource{
     }
 	
 	//@Path("payments/payment/{pay_id}")
-	@Path("Payments/{pay_id}")
+	@Path("Payment/{pay_id}")
 	@PUT
-	@Consumes(MediaType.APPLICATION_XML)
-	@Produces(MediaType.APPLICATION_XML)
+
     public Response  setPay(@PathParam("user_id") String id,@PathParam("pay_id") int payId,
     		PayRequest pw,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 		List<Payement> ds = new ArrayList<Payement>();
@@ -514,11 +534,11 @@ public class ParentResource{
     			String uri=uriInfo.getAbsolutePathBuilder().build().toString();
 				addLinkToList(uris, uri, "self", "PUT");
 				uri=uriInfo.getBaseUriBuilder().path(ParentResource.class)
-							.resolveTemplate("user_id",id).path("History").build().toString();
-				addLinkToList(uris, uri, "History", "GET");
+							.resolveTemplate("user_id",id).path("allPaid").build().toString();
+				addLinkToList(uris, uri, "see all paid payments", "GET");
 				uri=uriInfo.getBaseUriBuilder().path(ParentResource.class)
-						.resolveTemplate("user_id",id).path("Payments").build().toString();
-				addLinkToList(uris, uri, "Upcoming Payments", "GET");
+						.resolveTemplate("user_id",id).path("allPending").build().toString();
+				addLinkToList(uris, uri, "see all pending Payments", "GET");
 				uri=uriInfo.getBaseUriBuilder().path(ParentResource.class)
 						.resolveTemplate("user_id",id).build().toString();
 		        addLinkToList(uris, uri, "general services", "GET");
@@ -538,7 +558,7 @@ public class ParentResource{
    
    	@Path("pubNotif")
 	@GET
-	@Produces(MediaType.APPLICATION_XML)
+
    public Response  getPublicNotif(@PathParam("user_id") String id,@Context UriInfo uriInfo,@Context HttpHeaders h) {
        	List<Notificatio>noteList = notificationDao.findAll();
        	List<NotificationResponse> newList = new ArrayList<NotificationResponse>();
@@ -550,13 +570,21 @@ public class ParentResource{
        			newNot.setSendDate(n.getSendDate());
        			newNot.setContentType(n.getContentType());
        			newNot.setContent(n.getContent());
-       			String uri= uriInfo.getAbsolutePathBuilder().build().toString();
-           		newNot.addLink(uri, "self", "GET");
-           		uri = uriInfo.getBaseUriBuilder().path(ParentResource.class)
-           				.resolveTemplate("user_id",id).path("privNotif").build().toString();
-           		newNot.addLink(uri, "private Notifications", "GET");
-           		uri=uriInfo.getBaseUriBuilder().path(ParentResource.class)
-	    				.resolveTemplate("user_id",id).build().toString();
+       			String uri;
+       			if (newList.isEmpty()) {
+       				uri= uriInfo.getAbsolutePathBuilder().build().toString();
+	           		newNot.addLink(uri, "self", "GET");
+	           		uri = uriInfo.getBaseUriBuilder().path(ParentResource.class)
+	           				.resolveTemplate("user_id",id).path("privNotif").build().toString();
+	           		newNot.addLink(uri, "private Notifications", "GET");
+	           		uri=uriInfo.getBaseUriBuilder().path(ParentResource.class)
+		    				.resolveTemplate("user_id",id).build().toString();
+		        	newNot.addLink(uri, "general services","GET");
+       			}
+       			uri=uriInfo.getBaseUriBuilder().path(ParentResource.class)
+	    				.resolveTemplate("user_id",id)
+	    				.path("Notification").path(String.valueOf(newNot.getNotificationNumber()))
+	    				.build().toString();
 	        	newNot.addLink(uri, "general services","GET");
        			newList.add(newNot);
        			
@@ -571,11 +599,10 @@ public class ParentResource{
         	}
        	
    }
-   	//utile singola visuale per vedere le notifiche?
+   	
  	@Path("privNotif")
 	@GET
-	@Consumes(MediaType.APPLICATION_XML)
-	@Produces(MediaType.APPLICATION_XML)
+
    public Response  getPrivateNotif(@PathParam("user_id") String id,@Context UriInfo uriInfo,@Context HttpHeaders h) {
        	List<Notificatio>noteList =  notificationDao.findAll();
        	System.out.println(noteList);
@@ -589,13 +616,21 @@ public class ParentResource{
        			newNot.setSendDate(n.getSendDate());
        			newNot.setContentType(n.getContentType());
        			newNot.setContent(n.getContent());
-       			String uri= uriInfo.getAbsolutePathBuilder().build().toString();
-           		newNot.addLink(uri, "self", "GET");
-           		uri = uriInfo.getBaseUriBuilder().path(ParentResource.class)
-           				.resolveTemplate("user_id",id).path("pubNotif").build().toString();
-           		newNot.addLink(uri, "public Notifications", "GET");
-           		uri=uriInfo.getBaseUriBuilder().path(ParentResource.class)
-	    				.resolveTemplate("user_id",id).build().toString();
+       			String uri;
+       			if (newList.isEmpty()) {
+       				uri= uriInfo.getAbsolutePathBuilder().build().toString();
+	           		newNot.addLink(uri, "self", "GET");
+	           		uri = uriInfo.getBaseUriBuilder().path(ParentResource.class)
+	           				.resolveTemplate("user_id",id).path("pubNotif").build().toString();
+	           		newNot.addLink(uri, "public Notifications", "GET");
+	           		uri=uriInfo.getBaseUriBuilder().path(ParentResource.class)
+		    				.resolveTemplate("user_id",id).build().toString();
+		        	newNot.addLink(uri, "general services","GET");
+       			}
+       			uri=uriInfo.getBaseUriBuilder().path(ParentResource.class)
+	    				.resolveTemplate("user_id",id)
+	    				.path("Notification").path(String.valueOf(newNot.getNotificationNumber()))
+	    				.build().toString();
 	        	newNot.addLink(uri, "general services","GET");
        			newList.add(newNot);
        		
@@ -608,6 +643,41 @@ public class ParentResource{
         else {
         	throw new NoContentException();
         	}
+       	
+   }
+ 	@Path("Notification/{notification_id}")
+	@GET
+   public Response  getSingleNotif(@PathParam("user_id") String id,@PathParam("notification_id") int notifiD,@Context UriInfo uriInfo,@Context HttpHeaders h) {
+       	List<Notificatio>noteList = notificationDao.findAll();
+       	for(Notificatio n : noteList) {
+       		if (n.getPrimaryKey().getNotificationNumber()==notifiD && 
+       				n.getPrimaryKey().getReceiver().equals(id)) {
+       			NotificationResponse newNot= new NotificationResponse();
+       			newNot.setNotificationNumber(n.getPrimaryKey().getNotificationNumber());
+       			newNot.setReceiver(n.getPrimaryKey().getReceiver());
+       			newNot.setSendDate(n.getSendDate());
+       			newNot.setContentType(n.getContentType());
+       			newNot.setContent(n.getContent());
+       			String uri= uriInfo.getAbsolutePathBuilder().build().toString();
+           		newNot.addLink(uri, "self", "GET");
+           		uri=uriInfo.getBaseUriBuilder().path(ParentResource.class)
+	    				.resolveTemplate("user_id",id).build().toString();
+	        	newNot.addLink(uri, "general services","GET");
+	        	uri=uriInfo.getBaseUriBuilder().path(ParentResource.class)
+	    				.resolveTemplate("user_id",id)
+	    				.path("privNotif")
+	    				.build().toString();
+	        	newNot.addLink(uri, "see all private notifications","GET");
+	        	uri=uriInfo.getBaseUriBuilder().path(ParentResource.class)
+	    				.resolveTemplate("user_id",id)
+	    				.path("pubNotif")
+	    				.build().toString();
+	        	newNot.addLink(uri, "see all private notifications","GET");
+	        	return Response.status(Response.Status.OK).entity(newNot).type(negotiation(h)).build();
+       		}
+       	}
+       	throw new DataNotFoundException();
+      
        	
    }
  	public void addLinkToList(List<Link> list,String url,String rel,String type) {

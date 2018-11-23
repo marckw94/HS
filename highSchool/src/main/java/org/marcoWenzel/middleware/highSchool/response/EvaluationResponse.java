@@ -10,21 +10,21 @@ import org.marcoWenzel.middleware.highSchool.wrapper.CourseWrapper;
 import org.marcoWenzel.middleware.highSchool.wrapper.Wrapper;
 @XmlRootElement
 public class EvaluationResponse {
-	private CourseWrapper cw;
-	private Wrapper sw;
+	private int courseId;
+	private int sonId;
 	private int mark;
-	private List<Link> links;  
-	public EvaluationResponse() {
-		this.links = new ArrayList<>();
-		this.cw = new CourseWrapper();
-		this.sw= new Wrapper();
-		
+	private List<Link> links  = new ArrayList<>();
+	public int getCourseId() {
+		return courseId;
 	}
-	public Wrapper getSw() {
-		return sw;
+	public void setCourseId(int courseId) {
+		this.courseId = courseId;
 	}
-	public void setSw(Wrapper sw) {
-		this.sw = sw;
+	public int getSonId() {
+		return sonId;
+	}
+	public void setSonId(int sonId) {
+		this.sonId = sonId;
 	}
 	public int getMark() {
 		return mark;
@@ -37,12 +37,6 @@ public class EvaluationResponse {
 	}
 	public void setLinks(List<Link> links) {
 		this.links = links;
-	}
-	public CourseWrapper getCw() {
-		return cw;
-	}
-	public void setCw(CourseWrapper cw) {
-		this.cw = cw;
 	}
 	public void addLink(String url,String rel,String type) {
 		Link newL= new Link();

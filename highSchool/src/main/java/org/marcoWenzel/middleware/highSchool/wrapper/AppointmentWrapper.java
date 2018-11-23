@@ -7,7 +7,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement
 @Table
 public class AppointmentWrapper {
-	private int appointmentId;
+	
 	private String parentUsername;
 	private String teacherId;
 	private Date appointmentDate;
@@ -33,13 +33,6 @@ public class AppointmentWrapper {
 	}
 
 
-	public int getAppointmentId() {
-		return appointmentId;
-	}
 
-
-	public void setAppointmentId(int appointmentId) {
-		this.appointmentId = appointmentId;
-	}
 	
 }

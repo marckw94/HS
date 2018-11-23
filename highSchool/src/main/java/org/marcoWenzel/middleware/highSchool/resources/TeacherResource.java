@@ -48,6 +48,7 @@ import org.marcoWenzel.middleware.highSchool.model.Student;
 import org.marcoWenzel.middleware.highSchool.model.Teacher;
 import org.marcoWenzel.middleware.highSchool.model.TimeTable;
 import org.marcoWenzel.middleware.highSchool.response.AppointmentResponse;
+import org.marcoWenzel.middleware.highSchool.response.ClassResponse;
 import org.marcoWenzel.middleware.highSchool.response.CourseResponse;
 import org.marcoWenzel.middleware.highSchool.response.EvaluationResponse;
 import org.marcoWenzel.middleware.highSchool.response.NotificationResponse;
@@ -63,7 +64,9 @@ import org.marcoWenzel.middleware.highSchool.wrapper.EvaluationWrapper;
 import org.marcoWenzel.middleware.highSchool.wrapper.ParentWrapper;
 import org.marcoWenzel.middleware.highSchool.wrapper.TeacherWrapper;
 @Secured({Category.Teacher})
-@Path("teacher/{user_id}")
+@Consumes({MediaType.APPLICATION_JSON,MediaType.APPLICATION_XML})
+@Produces({MediaType.APPLICATION_JSON,MediaType.APPLICATION_XML})
+@Path("Teacher/{user_id}")
 public class TeacherResource {
 	
 	TeacherDAO teacherDao = new TeacherDAO();	
@@ -78,7 +81,7 @@ public class TeacherResource {
 	SimpleDateFormat timeTablesdf = new SimpleDateFormat("HH:mm:ss");
 	TimeTableDAO timeTableDao = new TimeTableDAO();
 	@GET
-	@Produces(MediaType.APPLICATION_XML)
+
 	public Response getTeacherServices(@PathParam("user_id")String id,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 		
 		List<Link> uris = new ArrayList<Link>();
@@ -89,15 +92,23 @@ public class TeacherResource {
 				.build().toString();
 		addLinkToList(uris, uri, "see personal", "GET");
 		uri=uriInfo.getBaseUriBuilder().path(TeacherResource.class)
-				.resolveTemplate("user_id",id).path("Classes")
+				.resolveTemplate("user_id",id).path("allClasses")
 				.build().toString();
-		addLinkToList(uris, uri, "see classes", "GET");
+		addLinkToList(uris, uri, "see teached classes", "GET");
 		uri=uriInfo.getBaseUriBuilder().path(TeacherResource.class)
-				.resolveTemplate("user_id",id).path("appointments")
+				.resolveTemplate("user_id",id).path("allCourses")
 				.build().toString();
-		addLinkToList(uris, uri, "see appointments", "GET");
+		addLinkToList(uris, uri, "see teached courses", "GET");
 		uri=uriInfo.getBaseUriBuilder().path(AppointmentResource.class)
-				.resolveTemplate("user_id",id)
+				.resolveTemplate("user_id",id).path("allAppointments")
+				.build().toString();
+		addLinkToList(uris, uri, "see all appointments", "GET");
+		uri=uriInfo.getBaseUriBuilder().path(TeacherResource.class)
+				.resolveTemplate("user_id",id).path("allNotifications")
+				.build().toString();
+		addLinkToList(uris, uri, "see all notifications", "GET");
+		uri=uriInfo.getBaseUriBuilder().path(AppointmentResource.class)
+				.resolveTemplate("user_id",id).path("newAppointment")
 				.build().toString();
 		addLinkToList(uris, uri, "new appointment", "POST");
 		GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
@@ -106,7 +117,7 @@ public class TeacherResource {
 	}
 	@Path("personal")
 	@GET
-	@Produces(MediaType.APPLICATION_XML)
+
     public Response  getPersonalData(@PathParam("user_id") String id,@Context UriInfo uriInfo,@Context HttpHeaders h) {
         	Teacher thisTeacher = teacherDao.get(id);
         	TeacherResponse teacherResponse = new TeacherResponse();
@@ -118,8 +129,11 @@ public class TeacherResource {
         	uri = uriInfo.getAbsolutePathBuilder().build().toString();
         	teacherResponse.addLink(uri, "modify data", "PUT");
         	uri=uriInfo.getBaseUriBuilder().path(TeacherResource.class)
-        			.resolveTemplate("user_id", id).path("Classes").build().toString();
-        	teacherResponse.addLink(uri, "classes", "GET");
+        			.resolveTemplate("user_id", id).path("allClasses").build().toString();
+        	teacherResponse.addLink(uri, " see all teached classes", "GET");
+        	uri=uriInfo.getBaseUriBuilder().path(TeacherResource.class)
+        			.resolveTemplate("user_id", id).path("allCourses").build().toString();
+        	teacherResponse.addLink(uri, " see all teached courses", "GET");
         	uri=uriInfo.getBaseUriBuilder().path(TeacherResource.class)
     				.resolveTemplate("user_id",id).build().toString();
         	teacherResponse.addLink(uri, "general services","GET");
@@ -135,8 +149,6 @@ public class TeacherResource {
 // vedere cosa cambia per triggerare altre query
 	@PUT
 	@Path("personal")
-	@Produces(MediaType.APPLICATION_XML)
-	@Consumes(MediaType.APPLICATION_XML)
 	public Response setTeacherPersonal(TeacherWrapper teaIn,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 		
 		Teacher updateTeacher = teacherDao.get(teaIn.getTeacherId());
@@ -157,53 +169,232 @@ public class TeacherResource {
 	        	 throw new DataNotFoundException();
 	        	 }
 	}
-	//sistemare nomenclatura
+
 	@GET
-	@Path("Courses")
-	@Produces(MediaType.APPLICATION_XML)
-    public Response  getClass(@PathParam("user_id") String id,@Context UriInfo uriInfo,@Context HttpHeaders h) {
-		List<CourseResponse> teachedClass = new ArrayList<CourseResponse>();
+	@Path("allCourses")
+    public Response  getCourses(@PathParam("user_id") String id,@Context UriInfo uriInfo,@Context HttpHeaders h) {
+		List<CourseResponse> teachedCourses = new ArrayList<CourseResponse>();
         	Teacher thisTeacher = teacherDao.get(id);
         	if (!thisTeacher.getTeacherId().equals(id)) 
         		throw new DataNotFoundException();
         	Iterator<Course> onCourse =thisTeacher.getCourseKeep().iterator();
         	while (onCourse.hasNext()) {
-        		Course i = onCourse.next();
-        		CourseResponse newClass = new CourseResponse();
-        		newClass.setClassRoom(i.getClassRoom());
-        		newClass.setCourseDescription(i.getCourseDescription());
-        		newClass.setCourseName(i.getCourseName());
-        		newClass.setIdCourse(i.getIdCourse());
+        		Course course = onCourse.next();
+        		CourseResponse newCourse = new CourseResponse();
+        		newCourse.setClassRoom(course.getClassRoom());
+        		newCourse.setCourseDescription(course.getCourseDescription());
+        		newCourse.setCourseName(course.getCourseName());
+        		newCourse.setIdCourse(course.getIdCourse());
         		String uri=uriInfo.getAbsolutePathBuilder().build().toString();
-        		newClass.addLink(uri, "self", "GET");
+        		newCourse.addLink(uri, "self", "GET");
         		uri=uriInfo.getBaseUriBuilder().path(TeacherResource.class)
-            			.resolveTemplate("user_id", id).path("Classes")
-            			.path(Long.toString(newClass.getIdCourse())).path("students")
+            			.resolveTemplate("user_id", id).path("Course")
+            			.path(Long.toString(newCourse.getIdCourse()))
             			.build().toString();
-        		newClass.addLink(uri, "class componets", "GET");
-        		uri=uriInfo.getBaseUriBuilder().path(TeacherResource.class)
-            			.resolveTemplate("user_id", id).path("Classes")
-            			.path(Long.toString(newClass.getIdCourse())).path("timeTable")
-            			.build().toString();
-        		newClass.addLink(uri, "timeTable", "GET");
+        		newCourse.addLink(uri, "see specific course", "GET");
         		uri=uriInfo.getBaseUriBuilder().path(TeacherResource.class)
         				.resolveTemplate("user_id",id).build().toString();
-            	newClass.addLink(uri, "general services","GET");
-        		teachedClass.add(newClass);
+            	newCourse.addLink(uri, "general services","GET");
+        		teachedCourses.add(newCourse);
         	}
-        	GenericEntity<List<CourseResponse>> e = new GenericEntity<List<CourseResponse>>(teachedClass) {};
-        	if (!teachedClass.isEmpty()) {
+        	GenericEntity<List<CourseResponse>> e = new GenericEntity<List<CourseResponse>>(teachedCourses) {};
+        	if (!teachedCourses.isEmpty()) {
                 return Response.status(Response.Status.OK).entity(e).type(negotiation(h)).build();
             }
             else {
             	throw new NoContentException();
             	}
     }
-
-	@Path("Classes/{course_id}/students")
+    @Path("allClasses")
 	@GET
-	@Produces(MediaType.APPLICATION_XML)
-    public Response  getAllStudInClass(@PathParam("user_id") String idName,@PathParam("course_id") int id,
+	
+	public Response  getAllteachedClass(@PathParam("user_id") String idName,@Context UriInfo uriInfo,@Context HttpHeaders h) {
+    	Teacher teacher =teacherDao.get(idName);
+    	if (teacher==null)
+    		throw new DataNotFoundException();
+    	List <CourseClassAssociation> listCca= ccaDao.findAll();
+    	List<Integer> listOfCourses = new ArrayList<Integer>();
+    	List <ClassResponse> listOfClasses = new ArrayList<ClassResponse>();
+    	for (Course c : teacher.getCourseKeep())
+    		listOfCourses.add(c.getIdCourse());
+		
+		for(CourseClassAssociation cca : listCca) {
+			if (listOfCourses.contains(cca.getPrimaryKey().getCourse_id())) {
+				Classes cl= classDao.get(cca.getPrimaryKey().getClass_id());
+				ClassResponse cr = new ClassResponse();
+				cr.setClassName(cl.getClassName());
+				cr.setIdClass(cl.getIdClass());
+				String uri;
+				if (listOfClasses.isEmpty()) {
+					uri=uriInfo.getAbsolutePathBuilder().build().toString();
+	        		cr.addLink(uri, "self", "GET");
+	        		uri=uriInfo.getBaseUriBuilder().path(TeacherResource.class)
+	        				.resolveTemplate("user_id",idName).build().toString();
+	            	cr.addLink(uri, "general services","GET");
+				}
+				
+				uri=uriInfo.getBaseUriBuilder().path(TeacherResource.class)
+        				.resolveTemplate("user_id",idName)
+        				.path("Class").path(String.valueOf(cr.getIdClass()))
+        				.build().toString();
+				cr.addLink(uri, "see this specific class","GET");
+				listOfClasses.add(cr);
+			}
+		}
+		GenericEntity<List<ClassResponse>> e = new GenericEntity<List<ClassResponse>>(listOfClasses) {};
+    	if (!listOfClasses.isEmpty()) {
+            return Response.status(Response.Status.OK).entity(e).type(negotiation(h)).build();
+        }
+        else {
+        	throw new NoContentException();
+        	}		
+    	
+    }
+    @Path("Class/{class_id}")
+    @GET
+    public Response getSpecificClass(@PathParam("user_id") String idName,@PathParam("class_id") int classId,@Context UriInfo uriInfo,@Context HttpHeaders h) {
+    	Teacher teacher =teacherDao.get(idName);
+    	if (teacher==null)
+    		throw new DataNotFoundException();
+    	
+    	List<Integer> listOfCourses = new ArrayList<Integer>();
+    	
+    	for (Course c : teacher.getCourseKeep())
+    		listOfCourses.add(c.getIdCourse());
+    	if (teacherKeep(listOfCourses, classId)==false)
+    		throw new DataNotFoundException();
+    	Classes specifiClass= classDao.get(classId);
+		if (specifiClass==null)
+			throw new DataNotFoundException();
+		ClassResponse cresp= new ClassResponse();
+		cresp.setIdClass(specifiClass.getIdClass());
+		cresp.setClassName(specifiClass.getClassName());
+		String uri=uriInfo.getAbsolutePathBuilder().build().toString();
+		cresp.addLink(uri, "self", "GET");
+		uri=uriInfo.getBaseUriBuilder().path(TeacherResource.class)
+				.resolveTemplate("user_id",idName).build().toString();
+    	cresp.addLink(uri, "general services","GET");
+		uri=uriInfo.getBaseUriBuilder().path(TeacherResource.class)
+				.resolveTemplate("user_id",idName).path("allClasses")	
+				.build().toString();
+		cresp.addLink(uri, "see all classes", "GET");
+		uri=uriInfo.getBaseUriBuilder().path(TeacherResource.class)
+				.resolveTemplate("user_id",idName).path("Class")
+				.path(String.valueOf(classId)).path("students")
+				.build().toString();
+		cresp.addLink(uri, "see students of this class", "GET");
+		uri=uriInfo.getBaseUriBuilder().path(TeacherResource.class)
+				.resolveTemplate("user_id",idName).path("TimeTable")
+    			.path(String.valueOf(classId))
+				.build().toString();
+    	cresp.addLink(uri, "see the timeTable class","GET");
+		return Response.status(Response.Status.OK).entity(cresp).type(negotiation(h)).build();
+    	
+    }
+    public boolean teacherKeep(List<Integer> courseKeep,int classId) {
+    	List <CourseClassAssociation> listCca= ccaDao.findAll();
+    	for(CourseClassAssociation cca : listCca) {
+    		if (courseKeep.contains(cca.getPrimaryKey().getCourse_id())  && classId== cca.getPrimaryKey().getClass_id()) 
+    			return true;
+    	}
+    	return false;
+    }
+	@Path("Class/{class_id}/students")
+	@GET
+    public Response  getAllStudInClass(@PathParam("user_id") String idName,@PathParam("class_id") int id,
+    		@Context UriInfo uriInfo,@Context HttpHeaders h) {
+		Teacher teacher = teacherDao.get(idName);
+		if (teacher==null)
+    		throw new DataNotFoundException();
+    	
+    	List<Integer> listOfCourses = new ArrayList<Integer>();
+    	
+    	for (Course c : teacher.getCourseKeep())
+    		listOfCourses.add(c.getIdCourse());
+    	if (teacherKeep(listOfCourses, id)==false)
+    		throw new DataNotFoundException();
+	
+		List <Student> enrolledStud= studentDao.findAll();
+		List<StudentResponse>listOfResp = new ArrayList<StudentResponse>();
+		for (Student s:enrolledStud) {
+			if (s.getEnrolledClass()!=null && s.getEnrolledClass().getIdClass()==id) {
+				StudentResponse sr= new StudentResponse();
+				sr.setRollNo(s.getRollNo());
+				sr.setName(s.getName());
+				sr.setLastName(s.getLastName());
+				String uri;
+				if (listOfResp.isEmpty()) {
+					uri=uriInfo.getAbsolutePathBuilder().build().toString();
+	        		sr.addLink(uri, "self", "GET");
+	        		uri=uriInfo.getBaseUriBuilder().path(TeacherResource.class)
+	        				.resolveTemplate("user_id",idName).build().toString();
+	            	sr.addLink(uri, "general services","GET");
+	            	uri=uriInfo.getBaseUriBuilder().path(TeacherResource.class)
+	        				.resolveTemplate("user_id",idName)
+	        				.path("Class").path(String.valueOf(s.getEnrolledClass().getIdClass()))
+	        				.build().toString();
+					sr.addLink(uri, "see this specific class","GET");
+				}
+				
+        		listOfResp.add(sr);
+			}
+			
+		}
+    	GenericEntity<List<StudentResponse>> e = new GenericEntity<List<StudentResponse>>(listOfResp) {};
+    	if (listOfResp.size()>0) {
+            return Response.status(Response.Status.OK).entity(e).type(negotiation(h)).build();
+        }
+        else {
+        	throw new NoContentException();
+        	}
+    }
+	
+	@Path("Course/{course_id}")
+	@GET
+	public Response  getCourseInSpecific(@PathParam("user_id") String idName,@PathParam("course_id") int id,
+    		@Context UriInfo uriInfo,@Context HttpHeaders h) {
+		Teacher teacher = teacherDao.get(idName);
+		if (teacher==null)
+    		throw new DataNotFoundException();
+    	
+    	List<Integer> listOfCourses = new ArrayList<Integer>();
+    	
+    	for (Course c : teacher.getCourseKeep())
+    		listOfCourses.add(c.getIdCourse());
+    	
+    	if (!listOfCourses.contains(id)) 
+    		throw new DataNotFoundException();
+    	Course course = courseDao.get(id);
+    	CourseResponse cresp= new CourseResponse();
+		cresp.setIdCourse(course.getIdCourse());
+		cresp.setClassRoom(course.getClassRoom());
+		cresp.setCourseName(course.getCourseName());
+		cresp.setCourseDescription(course.getCourseDescription());
+		String uri=uriInfo.getAbsolutePathBuilder().build().toString();
+		cresp.addLink(uri, "self", "GET");
+		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
+				.build().toString();
+        cresp.addLink( uri, "general services", "GET");
+        uri=uriInfo.getBaseUriBuilder().path(TeacherResource.class)
+				.resolveTemplate("user_id",idName).path("Course")
+				.path(String.valueOf(course.getIdCourse())).path("students")
+				.build().toString();
+		cresp.addLink(uri, "see students of this course", "GET");
+		uri=uriInfo.getBaseUriBuilder().path(TeacherResource.class)
+				.resolveTemplate("user_id",idName).path("allCourses")
+				.build().toString();
+		cresp.addLink(uri, "see students of this course", "GET");
+       
+        return Response.status(Response.Status.OK).entity(cresp).type(negotiation(h)).build();
+	}
+    	
+    	
+	
+	
+	
+	@Path("Course/{course_id}/students")
+	@GET
+    public Response  getAllStudInCourse(@PathParam("user_id") String idName,@PathParam("course_id") int id,
     		@Context UriInfo uriInfo,@Context HttpHeaders h) {
         	Teacher subject = teacherDao.get(idName);
         	List<Integer> teachedClasses = new ArrayList<Integer>();
@@ -220,23 +411,38 @@ public class TeacherResource {
 			List<StudentResponse>listOfResp = new ArrayList<StudentResponse>();
 			for (Student s:enrolledStud) {
 				for(Integer idClass: teachedClasses) {
-				if (s.getEnrolledClass().getIdClass()==idClass) {
+				if (s.getEnrolledClass()!=null && s.getEnrolledClass().getIdClass()==idClass) {
 					StudentResponse sr= new StudentResponse();
 					sr.setRollNo(s.getRollNo());
 					sr.setName(s.getName());
 					sr.setLastName(s.getLastName());
-					String uri=uriInfo.getAbsolutePathBuilder().build().toString();
-	        		sr.addLink(uri, "self", "GET");
+					String uri;
+					if (listOfResp.isEmpty()) {
+						uri=uriInfo.getAbsolutePathBuilder().build().toString();
+		        		sr.addLink(uri, "self", "GET");
+		        		uri=uriInfo.getBaseUriBuilder().path(TeacherResource.class)
+		        				.resolveTemplate("user_id",id).build().toString();
+		            	sr.addLink(uri, "general services","GET");
+		            	uri=uriInfo.getBaseUriBuilder().path(TeacherResource.class)
+		        				.resolveTemplate("user_id",id)
+		        				.path("Course").path(String.valueOf(id))
+		        				.build().toString();
+		            	sr.addLink(uri, "see the specific course","GET");
+					}
 	        		uri=uriInfo.getBaseUriBuilder().path(TeacherResource.class)
 	            			.resolveTemplate("user_id",idName).path("Classes")
 	            			.path(Long.toString(id)).path("students")
 	            			.path(Long.toString(sr.getRollNo()))
-	            			.path("newMark")
+	            			.path("Mark")
 	            			.build().toString();
 	        		sr.addLink(uri, "give evaluation", "PUT");
 	        		uri=uriInfo.getBaseUriBuilder().path(TeacherResource.class)
-	        				.resolveTemplate("user_id",id).build().toString();
-	            	sr.addLink(uri, "general services","GET");
+	            			.resolveTemplate("user_id",idName).path("Classes")
+	            			.path(Long.toString(id)).path("students")
+	            			.path(Long.toString(sr.getRollNo()))
+	            			.path("Mark")
+	            			.build().toString();
+	        		sr.addLink(uri, "see evaluation", "GET");
 	        		listOfResp.add(sr);
 				}
 				}
@@ -251,8 +457,8 @@ public class TeacherResource {
     }
 	@Path("TimeTable/{class_id}")
 	@GET
-	 public Response seeClassTimeTable(@PathParam("class_id")int id 
-	    		,@Context UriInfo uriInfo,@Context HttpHeaders h) throws ParseException {
+	 public Response seeClassTimeTable(@PathParam("class_id")int id ,@PathParam("user_id")String teacherId,
+	    		@Context UriInfo uriInfo,@Context HttpHeaders h) throws ParseException {
 		Classes classTT= classDao.get(id);
 		if(classTT==null)
 			throw new DataNotFoundException();
@@ -276,19 +482,16 @@ public class TeacherResource {
 				ttresp.setStartingTime(c);
 				c=timeTablesdf.format(tt.getIdTime().getFinishTime());	
 				ttresp.setFinishTime(c);
-				ttList.add(ttresp);
+				
 				if (ttList.isEmpty()) {
 					uri=uriInfo.getAbsolutePathBuilder().build().toString();
-					ttresp.addLink(uri, "self", "GET");
-					uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
-							.build().toString();
-					ttresp.addLink(uri, "general services", "GET");
-					uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class).path("TimeTable")
-							.path("course_id")
-							.build().toString();
-					ttresp.addLink(uri, "general services", "GET");
+	        		ttresp.addLink(uri, "self", "GET");
+	        		uri=uriInfo.getBaseUriBuilder().path(TeacherResource.class)
+	        				.resolveTemplate("user_id",teacherId).build().toString();
+	            	ttresp.addLink(uri, "general services","GET");
+					
 				}
-				
+				ttList.add(ttresp);
 			}
 		}
 		GenericEntity<List<TimeTableResponse>> e = new GenericEntity<List<TimeTableResponse>>(ttList) {};
@@ -298,15 +501,52 @@ public class TeacherResource {
 			throw new NoContentException();
 	}
 	
-	
-    
+	@GET
+	@Path("Course/{course_id}/students/{stud_id}/Mark")
+	public Response setMarkPersonal(@PathParam("user_id") String teacherId,@PathParam("course_id") int idCourse,@PathParam("stud_id") int stud_id,
+			@Context UriInfo uriInfo,@Context HttpHeaders h) {
+		List<Evaluation> evalList = course_classDao.findAll();
+		List<EvaluationResponse> evalRespList = new ArrayList<EvaluationResponse>();
+		for (Evaluation e : evalList) {
+			if (e.getId().getCourseId().getIdCourse()==idCourse && e.getId().getStudentId().getRollNo()==stud_id) {
+				EvaluationResponse newResp= new EvaluationResponse();
+				newResp.setCourseId(e.getId().getCourseId().getIdCourse());
+				newResp.setSonId(e.getId().getStudentId().getRollNo());
+				newResp.setMark(e.getMark());
+				String uri;
+				if (evalRespList.isEmpty()) {
+					uri=uriInfo.getAbsolutePathBuilder().build().toString();
+					newResp.addLink(uri, "self", "GET");
+					uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
+							.build().toString();
+					newResp.addLink(uri, "general services", "GET");
+					uri=uriInfo.getBaseUriBuilder().path(TeacherResource.class)
+	            			.resolveTemplate("user_id",teacherId).path("Courses")
+	            			.path(Long.toString(idCourse)).path("students")
+	            			.build().toString();
+					newResp.addLink( uri, "see students", "GET");
+				}
+				uri=uriInfo.getAbsolutePathBuilder().build().toString();
+				newResp.addLink(uri, "add new evaluation for this student", "POST");
+				evalRespList.add(newResp);
+			}
+		}
+		GenericEntity<List<EvaluationResponse>> e = new GenericEntity<List<EvaluationResponse>>(evalRespList) {};
+		if (!evalRespList.isEmpty())
+			return Response.status(Response.Status.OK).entity(e).type(negotiation(h)).build();
+		else
+			throw new NoContentException();
+	}
     @POST
-	@Path("Classes/{course_id}/students/{stud_id}/newMark")
-	@Produces(MediaType.APPLICATION_XML)
-	@Consumes(MediaType.APPLICATION_XML)
+	@Path("Course/{course_id}/students/{stud_id}/Mark")
+
 	public Response setMarkPersonal(@PathParam("user_id") String teacherId,@PathParam("course_id") int idCourse,@PathParam("stud_id") int stud_id,
 			EvaluationWrapper classIn,@Context UriInfo uriInfo,@Context HttpHeaders h) {
     	int check_courseFeasibility=0;
+
+    	if (idCourse!= classIn.getCourseId() || classIn.getSonId()!=stud_id)
+    		throw new DataNotFoundException();
+    	System.out.println("passo");
     	Teacher teacher = teacherDao.get(teacherId);
     	for(Course keepCourse: teacher.getCourseKeep()) {
     		if (idCourse==keepCourse.getIdCourse()) {
@@ -333,8 +573,10 @@ public class TeacherResource {
 					List<Link> uris = new ArrayList<Link>();
 					String uri=uriInfo.getAbsolutePathBuilder().build().toString();
 					addLinkToList(uris, uri, "self", "POST");
+					uri=uriInfo.getAbsolutePathBuilder().build().toString();
+					addLinkToList(uris, uri, "see evalutations", "GET");
 					uri=uriInfo.getBaseUriBuilder().path(TeacherResource.class)
-	            			.resolveTemplate("user_id",teacherId).path("Classes")
+	            			.resolveTemplate("user_id",teacherId).path("Courses")
 	            			.path(Long.toString(idCourse)).path("students")
 	            			.build().toString();
 					addLinkToList(uris, uri, "see students", "GET");
@@ -355,10 +597,9 @@ public class TeacherResource {
     	 
 	}
     
-  
-	@Path("appointments")
+  /*
+	@Path("allAppointments")
 	@GET
-	@Produces(MediaType.APPLICATION_XML)
     public Response  getAppointment(@PathParam("user_id") String id,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 		
 		List< AppointmentResponse> ds = new ArrayList<AppointmentResponse>();
@@ -370,16 +611,18 @@ public class TeacherResource {
         		appResp.setParentUsername(a.getParentId());
         		appResp.setTeacherId(a.getTeacherId());
         		appResp.setAppointmentDate(a.getAppointmentDate());
-        		String uri= uriInfo.getAbsolutePathBuilder().build().toString();
-        		appResp.addLink(uri, "self", "GET");
-        		uri=uriInfo.getBaseUriBuilder().path(TeacherResource.class).resolveTemplate("user_id", id)
-        				.path("setAppointments").path(appResp.getParentUsername()).build().toString();
-        		appResp.addLink(uri, "modify appointment", "PUT");
-        		uri=uriInfo.getBaseUriBuilder().path(AppointmentResource.class).resolveTemplate("user_id",id).build().toString();
-        		appResp.addLink(uri, "new appointment", "POST");
-        		uri=uriInfo.getBaseUriBuilder().path(TeacherResource.class)
-        				.resolveTemplate("user_id",id).build().toString();
-            	appResp.addLink(uri, "general services","GET");
+        		String uri;
+        		if(ds.isEmpty()) {
+	        		uri= uriInfo.getAbsolutePathBuilder().build().toString();
+	        		appResp.addLink(uri, "self", "GET");
+	           		uri=uriInfo.getBaseUriBuilder().path(TeacherResource.class)
+	        				.resolveTemplate("user_id",id).build().toString();
+	            	appResp.addLink(uri, "general services","GET");
+        		}
+        		uri=uriInfo.getBaseUriBuilder().path(TeacherResource.class).resolveTemplate("user_id",id)
+        				.path("Appointment").path(String.valueOf(appResp.getAppointmentId()))
+        				.build().toString();
+        		appResp.addLink(uri, "see specific appointment","GET");
         		ds.add(appResp);
         	}
         }
@@ -392,12 +635,44 @@ public class TeacherResource {
         	}
         
     }
+	@GET
+	@Path("Appointment/{appoint_id}")
+	 public Response  getAppointment(@PathParam("user_id") String teacherid,@PathParam("appoint_id") int AppId,
+	    	@Context UriInfo uriInfo,@Context HttpHeaders h) {
+		Appointment app= appointmentDao.get(AppId);
+		if (app==null)
+			throw new DataNotFoundException();
+		if (!app.getTeacherId().equals(teacherid))
+			throw new DataNotFoundException();
 	
-	//sistemaere struttura tabella appointment
+		AppointmentResponse aResp= new AppointmentResponse();
+		aResp.setTeacherId(teacherid);
+		aResp.setParentUsername(app.getParentId());
+		aResp.setAppointmentDate(app.getAppointmentDate());
+		aResp.setAppointmentId(app.getAppointId());
+		String uri=uriInfo.getAbsolutePathBuilder().build().toString();
+		aResp.addLink(uri, "self", "GET");
+		uri=uriInfo.getBaseUriBuilder().path(TeacherResource.class)
+				.resolveTemplate("user_id",teacherid).build().toString();
+    	aResp.addLink(uri, "general services","GET");
+    	uri=uriInfo.getBaseUriBuilder().path(TeacherResource.class)
+				.resolveTemplate("user_id",teacherid)
+				.path("allAppointments")
+				.build().toString();
+    	aResp.addLink(uri, "all appointments","GET");
+        uri=uriInfo.getAbsolutePathBuilder().build().toString();
+        aResp.addLink( uri, "modify this appoinment", "PUT");
+        uri=uriInfo.getBaseUriBuilder().path(AppointmentResource.class).resolveTemplate("user_id",teacherid).build().toString();
+		aResp.addLink(uri, "new appointment", "POST");
+        uri=uriInfo.getAbsolutePathBuilder().build().toString();
+		aResp.addLink(uri, "delete appointment", "DELETE");
+		return Response.status(Response.Status.OK).entity(aResp).type(negotiation(h)).build();
+		
+	}
+	
 	@PUT
-	@Path("setAppointments/{appoint_id}")
-	@Consumes(MediaType.APPLICATION_XML)
-	@Produces(MediaType.APPLICATION_XML)
+	@Path("Appointment/{appoint_id}")
+
     public Response  setAppointment(@PathParam("user_id") String teacherid,@PathParam("appoint_id") int AppId,
     		AppointmentWrapper upApp,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 		Appointment oldApp= appointmentDao.get(AppId);
@@ -410,9 +685,9 @@ public class TeacherResource {
 			String uri=uriInfo.getAbsolutePathBuilder().build().toString();
 			addLinkToList(uris, uri, "self", "PUT");
 			uri=uriInfo.getBaseUriBuilder().path(TeacherResource.class)
-					.resolveTemplate("user_id", teacherid).path("appointments")
+					.resolveTemplate("user_id", teacherid).path("allAppointments")
 					.build().toString();
-			addLinkToList(uris, uri, "see appointments", "GET");
+			addLinkToList(uris, uri, "see  all appointments", "GET");
 			uri=uriInfo.getBaseUriBuilder().path(TeacherResource.class)
 					.resolveTemplate("user_id",teacherid).build().toString();
 	        addLinkToList(uris, uri, "general services", "GET");
@@ -427,9 +702,7 @@ public class TeacherResource {
 		 }
 	
 	@DELETE
-	@Path("setAppointments/{appoint_id}")
-	@Consumes(MediaType.APPLICATION_XML)
-	@Produces(MediaType.APPLICATION_XML)
+	@Path("Appointment/{appoint_id}")
     public Response  deleteAppointment(@PathParam("user_id") String teacherid,@PathParam("appoint_id") int AppId,
     		AppointmentWrapper upApp,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 		Appointment oldApp= appointmentDao.get(AppId);
@@ -441,9 +714,9 @@ public class TeacherResource {
 			String uri=uriInfo.getAbsolutePathBuilder().build().toString();
 			addLinkToList(uris, uri, "self", "PUT");
 			uri=uriInfo.getBaseUriBuilder().path(TeacherResource.class)
-					.resolveTemplate("user_id", teacherid).path("appointments")
+					.resolveTemplate("user_id", teacherid).path("allAppointments")
 					.build().toString();
-			addLinkToList(uris, uri, "see appointments", "GET");
+			addLinkToList(uris, uri, "see all appointments", "GET");
 			uri=uriInfo.getBaseUriBuilder().path(TeacherResource.class)
 					.resolveTemplate("user_id",teacherid).build().toString();
 	        addLinkToList(uris, uri, "general services", "GET");
@@ -456,17 +729,56 @@ public class TeacherResource {
 
 		 throw new DataNotFoundException();
 		 }
-
-	@Path("Notifications")
+*/
+	@Path("allNotifications")
 	@GET
-	@Produces(MediaType.APPLICATION_XML)
+
    public Response  getPublicNotif(@PathParam("user_id") String id,@Context UriInfo uriInfo,@Context HttpHeaders h) {
        	List<Notificatio>noteList = notificationDao.findAll();
        	if (noteList==null)
-       	 throw new DataNotFoundException();
+       	 throw new NoContentException();
        	List<NotificationResponse> newList = new ArrayList<NotificationResponse>();
        	for(Notificatio n : noteList) {
        		if(n.getPrimaryKey().getReceiver().equals(id)) {
+       			NotificationResponse newNot= new NotificationResponse();
+       			newNot.setNotificationNumber(n.getPrimaryKey().getNotificationNumber());
+       			newNot.setReceiver(n.getPrimaryKey().getReceiver());
+       			newNot.setSendDate(n.getSendDate());
+       			newNot.setContentType(n.getContentType());
+       			newNot.setContent(n.getContent());
+       			String uri;
+       			if (newList.isEmpty()) {
+       				uri= uriInfo.getAbsolutePathBuilder().build().toString();
+	           		newNot.addLink(uri, "self", "GET");
+	           		uri=uriInfo.getBaseUriBuilder().path(TeacherResource.class)
+		    				.resolveTemplate("user_id",id).build().toString();
+		        	newNot.addLink(uri, "general services","GET");
+       			}
+       			uri=uriInfo.getBaseUriBuilder().path(TeacherResource.class)
+	    				.resolveTemplate("user_id",id)
+	    				.path("Notification").path(String.valueOf(newNot.getNotificationNumber()))
+	    				.build().toString();
+           		newNot.addLink(uri, "see specific notification", "GET");
+       			newList.add(newNot);
+       			
+       		}
+       	}
+        GenericEntity<List<NotificationResponse>> e = new GenericEntity<List<NotificationResponse>>(newList) {};
+        if (!newList.isEmpty()) {
+            return Response.status(Response.Status.OK).entity(e).type(negotiation(h)).build();
+        }
+        else {
+        	 throw new NoContentException();
+        	 }
+       	
+   }
+	@Path("Notification/{notification_id}")
+	@GET
+   public Response  getSingleNotif(@PathParam("user_id") String id,@PathParam("notification_id") int notifiD,@Context UriInfo uriInfo,@Context HttpHeaders h) {
+       	List<Notificatio>noteList = notificationDao.findAll();
+       	for(Notificatio n : noteList) {
+       		if (n.getPrimaryKey().getNotificationNumber()==notifiD && 
+       				n.getPrimaryKey().getReceiver().equals(id)) {
        			NotificationResponse newNot= new NotificationResponse();
        			newNot.setNotificationNumber(n.getPrimaryKey().getNotificationNumber());
        			newNot.setReceiver(n.getPrimaryKey().getReceiver());
@@ -478,20 +790,18 @@ public class TeacherResource {
            		uri=uriInfo.getBaseUriBuilder().path(TeacherResource.class)
 	    				.resolveTemplate("user_id",id).build().toString();
 	        	newNot.addLink(uri, "general services","GET");
-       			newList.add(newNot);
-       			
+	        	uri=uriInfo.getBaseUriBuilder().path(TeacherResource.class)
+	    				.resolveTemplate("user_id",id)
+	    				.path("allNotifications")
+	    				.build().toString();
+	        	newNot.addLink(uri, "see all notifications","GET");
+	        	return Response.status(Response.Status.OK).entity(newNot).type(negotiation(h)).build();
        		}
        	}
-        GenericEntity<List<NotificationResponse>> e = new GenericEntity<List<NotificationResponse>>(newList) {};
-        if (!newList.isEmpty()) {
-            return Response.status(Response.Status.OK).entity(e).type(negotiation(h)).build();
-        }
-        else {
-        	 throw new DataNotFoundException();
-        	 }
+       	throw new DataNotFoundException();
+      
        	
    }
-	
 	
 	public void addLinkToList(List<Link> list,String url,String rel,String type) {
 		Link newL= new Link();

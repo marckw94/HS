@@ -45,6 +45,8 @@ import org.marcoWenzel.middleware.highSchool.util.Secured;
 import org.marcoWenzel.middleware.highSchool.wrapper.NotificationWrapper;
 @Secured({Category.Admin})
 @Path("Admin/Notif")
+@Consumes({MediaType.APPLICATION_JSON,MediaType.APPLICATION_XML})
+@Produces({MediaType.APPLICATION_JSON,MediaType.APPLICATION_XML})
 public class NotificationResource {
  NotificationDAO notificationDao = new NotificationDAO();
  ParentDAO parentDao = new ParentDAO();
@@ -57,8 +59,7 @@ public class NotificationResource {
  SimpleDateFormat sdf = new SimpleDateFormat("YYYY-MM-DD HH:mm:ss");
  @POST
  @Path("newParentNotif/{parent_id}")
- @Produces(MediaType.APPLICATION_XML)
- @Consumes(MediaType.APPLICATION_XML)
+
  public Response createParentNotif(@PathParam("parent_id")String id,NotificationWrapper newN
 		 ,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 	 if (newN.getReceiver() == null)
@@ -77,7 +78,7 @@ public class NotificationResource {
 	 List<Link> uris = new ArrayList<Link>();
 	 String uri=uriInfo.getAbsolutePathBuilder().build().toString();
 	 addLinkToList(uris, uri, "self", "POST");
-	 uri=uriInfo.getBaseUriBuilder().path(NotificationResource.class).path("allPar").build().toString();
+	 uri=uriInfo.getBaseUriBuilder().path(NotificationResource.class).path("allParents").build().toString();
 	 addLinkToList(uris, uri, "send to all parent", "POST");
 	 uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
 				.build().toString();
@@ -90,8 +91,7 @@ public class NotificationResource {
 	 }
  @POST
  @Path("newTeacherNotif/{teacher_id}")
- @Produces(MediaType.APPLICATION_XML)
- @Consumes(MediaType.APPLICATION_XML)
+
  public Response createTeacherNotif(@PathParam("teacher_id")String id,NotificationWrapper newN
 		 ,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 	 if (newN.getReceiver() == null)
@@ -111,7 +111,7 @@ public class NotificationResource {
 	 List<Link> uris = new ArrayList<Link>();
 	 String uri=uriInfo.getAbsolutePathBuilder().build().toString();
 	 addLinkToList(uris, uri, "self", "POST");
-	 uri=uriInfo.getBaseUriBuilder().path(NotificationResource.class).path("allTeach").build().toString();
+	 uri=uriInfo.getBaseUriBuilder().path(NotificationResource.class).path("allTeachers").build().toString();
 	 addLinkToList(uris, uri, "send to all teacher", "POST");
 	 uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
 				.build().toString();
@@ -125,8 +125,7 @@ public class NotificationResource {
  
  @Path("allTeachers")
  @POST
- @Consumes(MediaType.APPLICATION_XML)
- @Produces(MediaType.APPLICATION_XML)
+
  public Response createAllTeacher(NotificationWrapper newN,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 	 if (!newN.getReceiver().equals("teachers"))
 		 throw new DataNotFoundException();
@@ -143,13 +142,16 @@ public class NotificationResource {
 	 List<Link> uris = new ArrayList<Link>();
 	 String uri=uriInfo.getAbsolutePathBuilder().build().toString();
 	 addLinkToList(uris, uri, "self", "POST");
+	 uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
+				.build().toString();
+	 addLinkToList(uris, uri, "general services", "GET");
      if (teacher == null ) {
     	 
     	 throw new DataNotFoundException();
     	 }
      
      for (Teacher t:teacher) {
-    	 notification.getPrimaryKey().setReceiver(t.getSurname());
+    	 notification.getPrimaryKey().setReceiver(t.getTeacherId());
     	 notification.getPrimaryKey().setNotificationNumber(idNote);
 	     if ( !notificationDao.create(notification)) 
 	    	 throw new DataNotFoundException();
@@ -157,9 +159,7 @@ public class NotificationResource {
 	     uri= uriInfo.getBaseUriBuilder().path(NotificationResource.class).path("newTeacherNotif")
 	    		 .path(t.getTeacherId()).build().toString();
 	     addLinkToList(uris, uri, "send specific notification", "POST");
-	     uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
-					.build().toString();
-	     addLinkToList(uris, uri, "general services", "GET");
+	    
 	 }
 	 GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
 
@@ -168,8 +168,7 @@ public class NotificationResource {
  
  @Path("allParents")
  @POST
- @Consumes(MediaType.APPLICATION_XML)
- @Produces(MediaType.APPLICATION_XML)
+
  public Response createAllPar(NotificationWrapper newN,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 	 if (!newN.getReceiver().equals("parents"))
 		 throw new DataNotFoundException();
@@ -183,6 +182,9 @@ public class NotificationResource {
 	 List<Link> uris = new ArrayList<Link>();
 	 String uri=uriInfo.getAbsolutePathBuilder().build().toString();
 	 addLinkToList(uris, uri, "self", "POST");
+	 uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
+				.build().toString();
+	 addLinkToList(uris, uri, "general services", "GET");
      if (parent == null ) {
     	 
     	 throw new DataNotFoundException();     }
@@ -196,9 +198,7 @@ public class NotificationResource {
 	     uri= uriInfo.getBaseUriBuilder().path(NotificationResource.class).path("newParentNotif")
 	    		 .path(p.getUsername()).build().toString();
 	     addLinkToList(uris, uri, "send specific notification", "POST");
-	     uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
-					.build().toString();
-	     addLinkToList(uris, uri, "general services", "GET");
+	     
 	 }
 	 GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
 
@@ -206,8 +206,7 @@ public class NotificationResource {
  }
  @Path("ClassParents/{class_id}")
  @POST
- @Consumes(MediaType.APPLICATION_XML)
- @Produces(MediaType.APPLICATION_XML)
+
  public Response createParClass(@PathParam("class_id") int id,NotificationWrapper newN
 		 ,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 	 if (!newN.getReceiver().equals("class"))
@@ -215,10 +214,13 @@ public class NotificationResource {
 	 List<Student> allStudent = studentDao.findAll();
 	 List<Link> uris = new ArrayList<Link>();
 	 String uri=uriInfo.getAbsolutePathBuilder().build().toString();
-	 int maxid=notificationDao.maxid("primaryKey.notificationNumber");
+	 addLinkToList(uris, uri, "self", "POST");
+	 uri=uriInfo.getBaseUriBuilder().path(NotificationResource.class).path("ClassTeachers").path(Long.toString(id))
+			 .build().toString();
+	 addLinkToList(uris, uri, "send notification to interested  teachers", "POST");
 	 for (Student s: allStudent) {
-		 if (s.getEnrolledClass().getIdClass()==id) {
-			 
+		 if (s.getEnrolledClass()!=null && s.getEnrolledClass().getIdClass()==id) {
+			 int maxid=notificationDao.maxid("primaryKey.notificationNumber");
 			 System.out.println("maxid: "+ maxid);
 			 Notificatio notification = new Notificatio();
 			 notification.setPrimaryKey(new Notification_Id());
@@ -228,10 +230,8 @@ public class NotificationResource {
 			 notification.getPrimaryKey().setNotificationNumber(maxid);
 			 notification.getPrimaryKey().setReceiver(s.getParentUsername().getUsername());
 			 
-			 addLinkToList(uris, uri, "self", "POST");
-			 uri=uriInfo.getBaseUriBuilder().path(NotificationResource.class).path("ClassTeach").path(Long.toString(id))
-					 .build().toString();
-			 addLinkToList(uris, uri, "send notification to the teacher", "POST");
+			 
+			 
 			 uri= uriInfo.getBaseUriBuilder().path(NotificationResource.class).path("newParentNotif")
 		    		 .path(s.getParentUsername().getUsername()).build().toString();
 		     addLinkToList(uris, uri, "send specific notification", "POST");
@@ -251,8 +251,7 @@ public class NotificationResource {
  
  @Path("ClassTeachers/{class_id}")
  @POST
- @Consumes(MediaType.APPLICATION_XML)
- @Produces(MediaType.APPLICATION_XML)
+
  public Response createTeachClass(@PathParam("class_id") int id,NotificationWrapper newN
 		 ,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 	 if (!newN.getReceiver().equals("class"))
@@ -269,6 +268,7 @@ public class NotificationResource {
 	 }
 	 List<Link> uris = new ArrayList<Link>();
 	 String uri=uriInfo.getAbsolutePathBuilder().build().toString();
+	 addLinkToList(uris, uri, "self", "POST");
 	 int maxid=notificationDao.maxid("primaryKey.notificationNumber");
 	 for(Course c : coursePerClass) {
 		 Notificatio notification = new Notificatio();
@@ -276,16 +276,20 @@ public class NotificationResource {
 		 notification.setContent(newN.getContent());
 		 notification.setContentType(newN.getContentType());
 		 notification.setSendDate(cal.getTime());
-		 addLinkToList(uris, uri, "self", "POST");
-		 uri= uriInfo.getBaseUriBuilder().path(NotificationResource.class).path("ClassPar").path(Long.toString(id))
+		 
+		
+		 notification.getPrimaryKey().setNotificationNumber(maxid);
+		 notification.getPrimaryKey().setReceiver(c.getTeacher().getTeacherId());
+		 uri= uriInfo.getBaseUriBuilder().path(NotificationResource.class).path("newTeacherNotif").path(c.getTeacher().getTeacherId())
 				 .build().toString();
-		 addLinkToList(uris, uri, "send to interested parent", "POST");
-		  notification.getPrimaryKey().setNotificationNumber(maxid);
-		  notification.getPrimaryKey().setReceiver(c.getTeacher().getTeacherId());
-		  
-		  if(!notificationDao.create(notification)) {
-			  throw new DataNotFoundException();		  }
+		 addLinkToList(uris, uri, "send to specific teacher", "POST");
+		 if(!notificationDao.create(notification)) {
+			  throw new DataNotFoundException();
+		}
 	 }
+	 uri= uriInfo.getBaseUriBuilder().path(NotificationResource.class).path("ClassParents").path(Long.toString(id))
+			 .build().toString();
+	 addLinkToList(uris, uri, "send to interested parents", "POST");
 	 uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
 				.build().toString();
 	 addLinkToList(uris, uri, "general services", "GET");

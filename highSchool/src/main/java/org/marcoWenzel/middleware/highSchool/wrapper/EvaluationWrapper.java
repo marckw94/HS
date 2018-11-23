@@ -6,25 +6,20 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement
 @Table
 public class EvaluationWrapper {
-	private CourseWrapper cw;
-	private Wrapper sw;
+	private int courseId;
+	private int sonId;
 	private int mark;
-	public EvaluationWrapper() {
-		this.cw = new CourseWrapper();
-		this.sw= new Wrapper();
-		
+	public int getCourseId() {
+		return courseId;
 	}
-	public CourseWrapper getCw() {
-		return cw;
+	public void setCourseId(int courseId) {
+		this.courseId = courseId;
 	}
-	public void setCw(CourseWrapper cw) {
-		this.cw = cw;
+	public int getSonId() {
+		return sonId;
 	}
-	public Wrapper getSw() {
-		return sw;
-	}
-	public void setSw(Wrapper sw) {
-		this.sw = sw;
+	public void setSonId(int sonId) {
+		this.sonId = sonId;
 	}
 	public int getMark() {
 		return mark;
@@ -32,5 +27,6 @@ public class EvaluationWrapper {
 	public void setMark(int mark) {
 		this.mark = mark;
 	}
+	
 	
 }
