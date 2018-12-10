@@ -222,7 +222,7 @@ public class AdministratorResource {
 	    		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
 	    				.build().toString();
 	            newStud.addLink( uri, "general services", "GET");
-	            uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class).path("parent_id").path("newSon")
+	            uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class).path("Parent").path("parent_id").path("newSon")
 	    				.build().toString();
 	            newStud.addLink( uri, "add new students", "POST");
     		}
@@ -463,7 +463,7 @@ public class AdministratorResource {
 		List<Link> uris = new ArrayList<Link>();
 		String uri=uriInfo.getAbsolutePathBuilder().build().toString();
 		addLinkToList(uris, uri, "self", "POST");
-		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class).path(newParent.getUsername()).path("newSon").build().toString();
+		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class).path("Parent").path(newParent.getUsername()).path("newSon").build().toString();
 		addLinkToList(uris, uri, "add son", "POST");
 		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
 				.build().toString();
@@ -475,7 +475,7 @@ public class AdministratorResource {
 		 throw new DataNotFoundException();
 		 }
 	
-	@Path("{parent_id}/newSon")
+	@Path("Parent/{parent_id}/newSon")
 	@POST
 	 public Response createSon(Wrapper newS,@PathParam("parent_id") String parentS,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 		Parent parent = parentDao.get(parentS);
@@ -776,7 +776,7 @@ public class AdministratorResource {
 		uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class)
 				.build().toString();
         presp.addLink( uri, "general services", "GET");
-        uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class).path(presp.getUsername())
+        uri=uriInfo.getBaseUriBuilder().path(AdministratorResource.class).path("Parent").path(presp.getUsername())
         		.path("newSon").build().toString();
         presp.addLink( uri, "add new son", "POST");
         return Response.status(Response.Status.OK).entity(presp).type(negotiation(h)).build();
@@ -998,7 +998,10 @@ public class AdministratorResource {
     		,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 		
 		System.out.println("entro");
+		//newHours.setFinishTime(new Date());
 		System.out.println(newHours.getFinishTime());
+		//newHours.setStartingTime(new Date());
+		System.out.println(newHours.getStartingTime());
 		TimeTable newH = new TimeTable();
 		newH.setIdTime(new TimeTable_Id());
 		
@@ -1022,7 +1025,7 @@ public class AdministratorResource {
         addLinkToList(uris, uri, "general services", "GET");
 		GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
 		if ( timeTableDao.create(newH)) {
-	        return Response.status(Response.Status.CREATED).entity(e).type(negotiation(h)).build();
+	        return Response.status(Response.Status.CREATED).entity(newHours).type(negotiation(h)).build();
 	    }
 	    else {
 	         throw new DataNotFoundException();

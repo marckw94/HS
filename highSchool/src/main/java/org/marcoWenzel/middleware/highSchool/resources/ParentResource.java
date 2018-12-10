@@ -63,6 +63,7 @@ import org.marcoWenzel.middleware.highSchool.wrapper.Wrapper;
 @Consumes({MediaType.APPLICATION_JSON,MediaType.APPLICATION_XML})
 @Produces({MediaType.APPLICATION_JSON,MediaType.APPLICATION_XML})
 @Path("Parent/{user_id}")
+//cuiao
 public class ParentResource{
 	ParentDAO parentDao = new ParentDAO();
 	StudentDAO studentDao = new StudentDAO();
@@ -73,7 +74,7 @@ public class ParentResource{
 	Calendar cal = Calendar.getInstance();
     SimpleDateFormat sdf = new SimpleDateFormat("YYYY-MM-DD HH:mm:ss");
     
-	@Context
+	@Context 
 	UriInfo uriInfo;
 	@GET
 	public Response getParentServices(@PathParam("user_id")String id,@Context UriInfo uriInfo,@Context HttpHeaders h) {
@@ -97,11 +98,11 @@ public class ParentResource{
 				.build().toString();
 		addLinkToList(uris, uri, "new appointment", "POST");
 		uri=uriInfo.getBaseUriBuilder().path(ParentResource.class)
-				.resolveTemplate("user_id",id).path("allPaid")
+				.resolveTemplate("user_id",id).path("Payment").path("allPaid")
 				.build().toString();
 		addLinkToList(uris, uri, "see all paid payments", "GET");
 		uri=uriInfo.getBaseUriBuilder().path(ParentResource.class)
-				.resolveTemplate("user_id",id).path("allPending")
+				.resolveTemplate("user_id",id).path("Payment").path("allPending")
 				.build().toString();
 		addLinkToList(uris, uri, "see all pending payments", "GET");
 		uri=uriInfo.getBaseUriBuilder().path(ParentResource.class)
@@ -133,7 +134,7 @@ public class ParentResource{
         	parentInterface.addLink(uri, "self","GET");
         	uri=uriInfo.getAbsolutePathBuilder().build().toString();
         	parentInterface.addLink(uri, "modify self","PUT");
-        	uri = uriInfo.getBaseUriBuilder().path("parent").path(id).path("children").build().toString();
+        	uri = uriInfo.getBaseUriBuilder().path(ParentResource.class).path(id).path("children").build().toString();
         	parentInterface.addLink(uri, "see children","GET");
         	uri=uriInfo.getBaseUriBuilder().path(ParentResource.class)
     				.resolveTemplate("user_id",id).build().toString();
@@ -189,7 +190,7 @@ public class ParentResource{
     		studentInterface.setRollNo(i.getRollNo());
     		String uri;
     		if (studentInterfaces.isEmpty()) {
-	    		uri=uriInfo.getBaseUriBuilder().path("parent").path(id).path("son").path(Long.toString(i.getRollNo())).build().toString();
+	    		uri=uriInfo.getBaseUriBuilder().path(ParentResource.class).path(id).path("son").path(Long.toString(i.getRollNo())).build().toString();
 	        	studentInterface.addLink(uri, "self","GET");
 	        	uri=uriInfo.getBaseUriBuilder().path(ParentResource.class)
 	    				.resolveTemplate("user_id",id).build().toString();
@@ -226,10 +227,10 @@ public class ParentResource{
 				String uri=uriInfo.getAbsolutePathBuilder().build().toString();
 		    	studentInterface.addLink(uri, "self","GET");
 		    	studentInterface.addLink(uri, "modify self","PUT");
-		    	uri=uriInfo.getBaseUriBuilder().path("parent").path(id).
+		    	uri=uriInfo.getBaseUriBuilder().path(ParentResource.class).path(id).
 		    			path("child").path(Long.toString(i.getRollNo())).path("marks").build().toString();
 		    	studentInterface.addLink(uri, "marks","GET");
-		    	uri=uriInfo.getBaseUriBuilder().path("parent").path(id).
+		    	uri=uriInfo.getBaseUriBuilder().path(ParentResource.class).path(id).
 		    			path("children").build().toString();
 		    	studentInterface.addLink(uri, "see all children of this parent","GET");
 		    	uri=uriInfo.getBaseUriBuilder().path(ParentResource.class)
@@ -295,8 +296,6 @@ public class ParentResource{
         			System.out.println("idStud " + i.getRollNo());
         			if (i.getRollNo()==cc.getId().getStudentId().getRollNo()) {
         				newResp=new EvaluationResponse();
-        				//newResp.setCourseName(cc.getId().getCourseId().getCourseName());
-        				//newResp.getSw().setLastName(i.getLastName());
         				newResp.setMark(cc.getMark());
         				String uri= uriInfo.getAbsolutePathBuilder().build().toString();
         				newResp.addLink(uri, "self", "GET");
@@ -304,7 +303,7 @@ public class ParentResource{
         	    				.resolveTemplate("user_id",id).build().toString();
         	        	newResp.addLink(uri, "general services","GET");
         				newListofResp.add(newResp);
-        				uri=uriInfo.getBaseUriBuilder().path("parent").path(id).
+        				uri=uriInfo.getBaseUriBuilder().path(ParentResource.class).path(id).
         		    			path("children").build().toString();
         		    	newResp.addLink(uri, "see all children of this parent","GET");
         			}
@@ -319,7 +318,7 @@ public class ParentResource{
             	 }
 	}
     
-
+/*
 	@Path("allAppointments")
 	@GET
 
@@ -419,6 +418,9 @@ public class ParentResource{
 
 		 throw new DataNotFoundException();
 		 }
+		 
+		 
+*/
 	@Path("Payment/allPaid")
 	@GET
 

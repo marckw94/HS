@@ -29,8 +29,8 @@ import org.marcoWenzel.middleware.highSchool.util.Secured;
 import org.marcoWenzel.middleware.highSchool.util.TokenManager;
 
 
-@Produces(MediaType.APPLICATION_JSON)
-@Consumes(MediaType.APPLICATION_JSON)
+@Consumes({MediaType.APPLICATION_JSON,MediaType.APPLICATION_XML})
+@Produces({MediaType.APPLICATION_JSON,MediaType.APPLICATION_XML})
 @Path("authentication")
 public class AuthenticationResource {
 
@@ -45,7 +45,9 @@ public class AuthenticationResource {
 	    	String category = log.getCategory();
 	    	System.out.println(log.getUsername());
 	    	LogIn userLog = loginDao.get(log.getUsername());
-	    	//System.out.println(userLog.getUsername());
+	    	if (userLog!= null && !userLog.getCategory().equals(category)) {
+	    		throw new UnauthorizedException();
+	    	}
 	    	List<Link> uris = new ArrayList<Link>();
 	    	if (log.getCategory().equals("Parent")) {
 	    		uri=uriInfo.getBaseUriBuilder().path(ParentResource.class)
