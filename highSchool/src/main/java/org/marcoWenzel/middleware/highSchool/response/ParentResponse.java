@@ -4,10 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Named;
+import javax.persistence.Table;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
 
 import org.marcoWenzel.middleware.highSchool.util.Link;
+@Table
 @XmlRootElement
+@XmlType (propOrder = {"username","name","surname","password","links"})
 public class ParentResponse {
 	private String username;
 	private String name;
@@ -38,10 +42,10 @@ public class ParentResponse {
 	public void setPassword(String password) {
 		this.password = password;
 	}
-	public List<Link> getList() {
+	public List<Link> getLinks() {
 		return links;
 	}
-	public void setList(List<Link> list) {
+	public void setLinks(List<Link> list) {
 		this.links = list;
 	}
 	public void addLink(String url,String rel,String type) {

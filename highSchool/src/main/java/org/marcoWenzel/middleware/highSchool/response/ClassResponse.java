@@ -4,10 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
 
 import org.marcoWenzel.middleware.highSchool.util.Link;
 
 @XmlRootElement
+@XmlType(propOrder = {"idClass", "className", "links"})
 public class ClassResponse {
 	private int idClass;
 	private String className;

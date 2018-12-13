@@ -5,19 +5,16 @@ import java.util.Date;
 import java.util.List;
 
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
 
 import org.marcoWenzel.middleware.highSchool.util.Link;
 @XmlRootElement
+@XmlType(propOrder = {"notificationNumber", "receiver", "content","sendDate","contentType", "links"})
 public class NotificationResponse {
-	public List<Link> getLinks() {
-		return links;
-	}
-	public void setLinks(List<Link> links) {
-		this.links = links;
-	}
+	
 	private int notificationNumber;
 	private String receiver;
-	private String Content;
+	private String content;
 	private Date sendDate;
 	private String contentType;
 	private List<Link> links  = new ArrayList<>();
@@ -33,12 +30,7 @@ public class NotificationResponse {
 	public void setReceiver(String userName) {
 		this.receiver = userName;
 	}
-	public String getContent() {
-		return Content;
-	}
-	public void setContent(String content) {
-		Content = content;
-	}
+	
 	public Date getSendDate() {
 		return sendDate;
 	}
@@ -51,11 +43,23 @@ public class NotificationResponse {
 	public void setContentType(String contentType) {
 		this.contentType = contentType;
 	}
+	public List<Link> getLinks() {
+		return links;
+	}
+	public void setLinks(List<Link> links) {
+		this.links = links;
+	}
 	public void addLink(String url,String rel,String type) {
 		Link newL= new Link();
 		newL.setLink(url);
 		newL.setRel(rel);
 		newL.setType(type);
 		links.add(newL);
+	}
+	public String getContent() {
+		return content;
+	}
+	public void setContent(String content) {
+		this.content = content;
 	}
 }

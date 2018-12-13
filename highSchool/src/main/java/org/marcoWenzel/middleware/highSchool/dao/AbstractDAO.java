@@ -60,9 +60,7 @@ public abstract class AbstractDAO<T> {
            session.beginTransaction();
            Query query = session.createQuery("select e.primaryKey.notificationNumber from " + this.clazz.getSimpleName()+ " e order by e.primaryKey.notificationNumber DESC");
            maxList = query.list();
-           System.out.println("okkk");
            session.getTransaction().commit();
-           System.out.println("maxID:"+maxList.get(0));
            maxid=maxList.get(0)+1;
        }
        catch (Exception exception) {
@@ -79,20 +77,16 @@ public abstract class AbstractDAO<T> {
 	return maxid;  
    }
    public int maxid(String field) {
-	   System.out.println("entro");
 	   Session session = null;
 	   List <Student>entities = null;
 	   List<Integer> maxList=null;
 	   int maxid = 0;
        try {
            session = sessionFactory.openSession();
-           System.out.println("bbbb");
            session.beginTransaction();
            Query query = session.createQuery("select e."+field+" from " + this.clazz.getSimpleName()+ " e order by e."+field+" DESC");
            maxList = query.list();
-           System.out.println("okkk");
            session.getTransaction().commit();
-           //System.out.println("maxID:"+maxList.get(0));
            if (!maxList.isEmpty())
         	   maxid=maxList.get(0)+1;
            else
@@ -170,15 +164,10 @@ public abstract class AbstractDAO<T> {
         Session session = null;
 
         try {
-        	System.out.println("f4444");
             session = sessionFactory.openSession();
-            System.out.println("f11222");
             session.beginTransaction();
-            System.out.println("3333");
             session.persist(entity);
-            System.out.println("f333452224");
             session.getTransaction().commit();
-            System.out.println("ffffff");
             success = true;
         }
         catch (Exception exception) {

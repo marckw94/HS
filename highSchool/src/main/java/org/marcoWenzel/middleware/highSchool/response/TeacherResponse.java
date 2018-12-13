@@ -4,9 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
 
 import org.marcoWenzel.middleware.highSchool.util.Link;
 @XmlRootElement
+@XmlType(propOrder = {"teacherId", "name", "surname","password", "links"})
 public class TeacherResponse {
 	private String teacherId;
 	private String name;

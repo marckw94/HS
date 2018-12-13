@@ -4,16 +4,20 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import javax.persistence.Table;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
 
 import org.marcoWenzel.middleware.highSchool.util.Link;
+@Table
 @XmlRootElement
+@XmlType (propOrder = {"payID","parentUsername","payed","paymentDescription","cost","notificationDate","payementDate","links"})
 public class PaymentResponse {
 	private int payID;
 	private String parentUsername;
 	private String paymentDescription;
 	private double cost;
-	private boolean isPayed;
+	private boolean payed;
 	private Date notificationDate;
 	private Date payementDate;
 	private List<Link> links  = new ArrayList<>();
@@ -42,12 +46,7 @@ public class PaymentResponse {
 	public void setCost(double cost) {
 		this.cost = cost;
 	}
-	public boolean isPayed() {
-		return isPayed;
-	}
-	public void setPayed(boolean isPayed) {
-		this.isPayed = isPayed;
-	}
+
 	public Date getNotificationDate() {
 		return notificationDate;
 	}
@@ -73,4 +72,13 @@ public class PaymentResponse {
 		newL.setType(type);
 		links.add(newL);
 	}
+	public boolean getPayed() {
+		return payed;
+	}
+	public void setPayed(boolean payed) {
+		this.payed = payed;
+	}
+
+	
+	
 }

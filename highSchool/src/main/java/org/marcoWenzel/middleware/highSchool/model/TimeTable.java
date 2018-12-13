@@ -1,13 +1,12 @@
 package org.marcoWenzel.middleware.highSchool.model;
 
-
-
 import java.io.Serializable;
 
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.xml.bind.annotation.XmlRootElement;
+
 @XmlRootElement
 @Entity
 @Table(name="TIMETABLE")

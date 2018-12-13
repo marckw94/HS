@@ -1,19 +1,12 @@
 package org.marcoWenzel.middleware.highSchool.model;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
+
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 @Entity
@@ -26,10 +19,7 @@ public class Course  implements Serializable {
 	private String classRoom;
 	
 	private Teacher teacher;
-	//@ManyToOne()
-	//@JoinColumn(name="CLASS_ID")
 	
-	//private Classes classBelong;
 	public Course() {}
 	public String getCourseName() {
 		return courseName;
@@ -59,20 +49,11 @@ public class Course  implements Serializable {
 		this.classRoom = classRoom;
 	}
 	@Id  
-	//@OneToOne(mappedBy="primaryKey.studentId",cascade=CascadeType.ALL)
 	public int getIdCourse() {
 		return idCourse;
 	}
 	public void setIdCourse(int idCourse) {
 		this.idCourse = idCourse;
 	}
-	//@ManyToOne()
-	//@JoinColumn(name="CLASSKEEP_ID",referencedColumnName="keepCourses" )
 	
-	/*public Classes getClassBelong() {
-		return classBelong;
-	}
-	public void setClassBelong(Classes classBelong) {
-		this.classBelong = classBelong;
-	}*/
 }

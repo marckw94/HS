@@ -3,7 +3,6 @@ package org.marcoWenzel.middleware.highSchool.model;
 import java.io.Serializable;
 
 import javax.persistence.Embeddable;
-import javax.xml.bind.annotation.XmlRootElement;
 
 @Embeddable
 public class Notification_Id implements Serializable {

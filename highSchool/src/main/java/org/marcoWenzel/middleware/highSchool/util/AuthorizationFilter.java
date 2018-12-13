@@ -5,6 +5,7 @@ import java.lang.reflect.AnnotatedElement;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 import javax.annotation.Priority;
@@ -23,6 +24,8 @@ import org.marcoWenzel.middleware.highSchool.exception.DataNotFoundException;
 import org.marcoWenzel.middleware.highSchool.exception.ForbiddenException;
 import org.marcoWenzel.middleware.highSchool.exception.UnauthorizedException;
 
+import com.auth0.jwt.JWT;
+
 @Secured
 @Provider
 @Priority(Priorities.AUTHORIZATION)
@@ -35,7 +38,7 @@ public class AuthorizationFilter implements ContainerRequestFilter{
 	@Override
 	public void filter(ContainerRequestContext requestContext) throws IOException {
 		String userInPath=null;
-		System.out.println(uriInfo.getPathParameters());
+		//System.out.println(uriInfo.getPathParameters());
 		if(uriInfo.getPathParameters().containsKey("user_id")) {
 			userInPath=uriInfo.getPathParameters().get("user_id").get(0);
 			System.out.println("path param: "+uriInfo.getPathParameters().get("user_id").get(0));
@@ -49,26 +52,28 @@ public class AuthorizationFilter implements ContainerRequestFilter{
 		String token = authorizationHeader.substring("Bearer".length()).trim();
 		
 		String requestedUser=TokenManager.validateUserToken(token);
-		System.out.println("Request user: "+requestedUser);
+		if (JWT.decode(token).getExpiresAt().before(new Date()))
+				throw new UnauthorizedException();
+		//System.out.println("Request user: "+requestedUser);
 		Category userRole = Category.valueOf(TokenManager.validateToken(token));
-		System.out.println("validateToken:"+TokenManager.validateToken(token));
+		//System.out.println("validateToken:"+TokenManager.validateToken(token));
 		List<Category> classRoles = extractRoles(resourceInfo.getResourceClass());
 		List<Category> methodRoles = extractRoles(resourceInfo.getResourceMethod());
 		
 		if (methodRoles.size() > 0) {
 			if (!methodRoles.contains(userRole)) {
-				System.out.println("entro1");
+				//System.out.println("entro1");
 				throw new ForbiddenException();
 			}
 		}
 		if (classRoles.size() > 0) {
 			if (!classRoles.contains(userRole)) {
-				System.out.println("entro2");
+				//System.out.println("entro2");
 				throw new ForbiddenException();
 			}
 		}
 		if (userInPath!=null && !requestedUser.equals(userInPath)) {
-			System.out.println("unhautorized resources");
+			//System.out.println("unhautorized resources");
 			throw new UnauthorizedException();
 		}
 		

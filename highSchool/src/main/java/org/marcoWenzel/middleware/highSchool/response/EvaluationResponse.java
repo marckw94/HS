@@ -4,11 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
 
 import org.marcoWenzel.middleware.highSchool.util.Link;
 import org.marcoWenzel.middleware.highSchool.wrapper.CourseWrapper;
 import org.marcoWenzel.middleware.highSchool.wrapper.Wrapper;
 @XmlRootElement
+@XmlType(propOrder = {"courseId", "sonId", "mark", "links"})
 public class EvaluationResponse {
 	private int courseId;
 	private int sonId;

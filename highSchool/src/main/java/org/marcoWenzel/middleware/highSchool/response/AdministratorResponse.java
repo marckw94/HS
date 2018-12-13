@@ -4,12 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
 
 import org.marcoWenzel.middleware.highSchool.util.Link;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 @XmlRootElement
+@XmlType(propOrder = {"username", "password","links"})
 public class AdministratorResponse {
 	private String username;
 	private String password;

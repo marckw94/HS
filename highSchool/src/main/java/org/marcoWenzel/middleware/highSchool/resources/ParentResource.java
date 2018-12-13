@@ -1,21 +1,15 @@
 package org.marcoWenzel.middleware.highSchool.resources;
 
-import java.security.Principal;
-import java.text.ParseException;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.annotation.security.DeclareRoles;
-import javax.annotation.security.RolesAllowed;
+
 import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
-import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -27,8 +21,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
-import org.eclipse.persistence.exceptions.i18n.DatabaseExceptionResource;
-import org.hibernate.engine.transaction.jta.platform.internal.SynchronizationRegistryBasedSynchronizationStrategy;
 import org.marcoWenzel.middleware.highSchool.dao.AppointmentDAO;
 import org.marcoWenzel.middleware.highSchool.dao.EvaluationDAO;
 import org.marcoWenzel.middleware.highSchool.dao.NotificationDAO;
@@ -37,13 +29,11 @@ import org.marcoWenzel.middleware.highSchool.dao.PaymentDAO;
 import org.marcoWenzel.middleware.highSchool.dao.StudentDAO;
 import org.marcoWenzel.middleware.highSchool.exception.DataNotFoundException;
 import org.marcoWenzel.middleware.highSchool.exception.NoContentException;
-import org.marcoWenzel.middleware.highSchool.model.Appointment;
 import org.marcoWenzel.middleware.highSchool.model.Evaluation;
 import org.marcoWenzel.middleware.highSchool.model.Notificatio;
 import org.marcoWenzel.middleware.highSchool.model.Parent;
 import org.marcoWenzel.middleware.highSchool.model.Payement;
 import org.marcoWenzel.middleware.highSchool.model.Student;
-import org.marcoWenzel.middleware.highSchool.response.AppointmentResponse;
 import org.marcoWenzel.middleware.highSchool.response.EvaluationResponse;
 import org.marcoWenzel.middleware.highSchool.response.NotificationResponse;
 import org.marcoWenzel.middleware.highSchool.response.ParentResponse;
@@ -52,18 +42,14 @@ import org.marcoWenzel.middleware.highSchool.response.StudentResponse;
 import org.marcoWenzel.middleware.highSchool.util.Category;
 import org.marcoWenzel.middleware.highSchool.util.Link;
 import org.marcoWenzel.middleware.highSchool.util.Secured;
-import org.marcoWenzel.middleware.highSchool.wrapper.AppointmentWrapper;
-import org.marcoWenzel.middleware.highSchool.wrapper.EvaluationWrapper;
-import org.marcoWenzel.middleware.highSchool.wrapper.NotificationWrapper;
 import org.marcoWenzel.middleware.highSchool.wrapper.ParentWrapper;
 import org.marcoWenzel.middleware.highSchool.wrapper.PayRequest;
-import org.marcoWenzel.middleware.highSchool.wrapper.PaymentWrapper;
 import org.marcoWenzel.middleware.highSchool.wrapper.Wrapper;
+
 @Secured({Category.Parent})
 @Consumes({MediaType.APPLICATION_JSON,MediaType.APPLICATION_XML})
 @Produces({MediaType.APPLICATION_JSON,MediaType.APPLICATION_XML})
 @Path("Parent/{user_id}")
-//cuiao
 public class ParentResource{
 	ParentDAO parentDao = new ParentDAO();
 	StudentDAO studentDao = new StudentDAO();
@@ -81,38 +67,47 @@ public class ParentResource{
 		List<Link> uris = new ArrayList<Link>();
 		String uri = uriInfo.getAbsolutePathBuilder().build().toString();
 		addLinkToList(uris, uri, "self", "GET");
+		
 		uri=uriInfo.getBaseUriBuilder().path(ParentResource.class)
 				.resolveTemplate("user_id",id).path("personal")
 				.build().toString();
 		addLinkToList(uris, uri, "see personal", "GET");
+		
 		uri=uriInfo.getBaseUriBuilder().path(ParentResource.class)
 				.resolveTemplate("user_id",id).path("children")
 				.build().toString();
 		addLinkToList(uris, uri, "see children", "GET");
+		
 		uri=uriInfo.getBaseUriBuilder().path(AppointmentResource.class)
 				.resolveTemplate("user_id",id).path("allAppointments")
 				.build().toString();
 		addLinkToList(uris, uri, "see all appointments", "GET");
+		
 		uri=uriInfo.getBaseUriBuilder().path(AppointmentResource.class)
 				.resolveTemplate("user_id",id)
 				.build().toString();
 		addLinkToList(uris, uri, "new appointment", "POST");
+		
 		uri=uriInfo.getBaseUriBuilder().path(ParentResource.class)
 				.resolveTemplate("user_id",id).path("Payment").path("allPaid")
 				.build().toString();
 		addLinkToList(uris, uri, "see all paid payments", "GET");
+		
 		uri=uriInfo.getBaseUriBuilder().path(ParentResource.class)
 				.resolveTemplate("user_id",id).path("Payment").path("allPending")
 				.build().toString();
 		addLinkToList(uris, uri, "see all pending payments", "GET");
+		
 		uri=uriInfo.getBaseUriBuilder().path(ParentResource.class)
 				.resolveTemplate("user_id",id).path("pubNotif")
 				.build().toString();
 		addLinkToList(uris, uri, "see public notifications", "GET");
+		
 		uri=uriInfo.getBaseUriBuilder().path(ParentResource.class)
 				.resolveTemplate("user_id",id).path("privNotif")
 				.build().toString();
 		addLinkToList(uris, uri, "see private notifications", "GET");
+		
 		GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
 
 		return Response.status(Response.Status.OK).entity(e).type(negotiation(h)).build();
@@ -120,25 +115,28 @@ public class ParentResource{
 	
 	@Path("personal")
 	@GET
-
     public Response  getPersonalData(@PathParam("user_id") String id,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 	
-		
     		Parent thisParent = parentDao.get(id);
         	ParentResponse parentInterface = new ParentResponse();
         	parentInterface.setName(thisParent.getName());
         	parentInterface.setPassword(thisParent.getPassword());
         	parentInterface.setSurname(thisParent.getSurname());
         	parentInterface.setUsername(thisParent.getUsername());
+        	
         	String uri=uriInfo.getAbsolutePathBuilder().build().toString();
         	parentInterface.addLink(uri, "self","GET");
+        	
         	uri=uriInfo.getAbsolutePathBuilder().build().toString();
         	parentInterface.addLink(uri, "modify self","PUT");
-        	uri = uriInfo.getBaseUriBuilder().path(ParentResource.class).path(id).path("children").build().toString();
+        	
+        	uri = uriInfo.getBaseUriBuilder().path(ParentResource.class).resolveTemplate("user_id",id).path("children").build().toString();
         	parentInterface.addLink(uri, "see children","GET");
+        	
         	uri=uriInfo.getBaseUriBuilder().path(ParentResource.class)
     				.resolveTemplate("user_id",id).build().toString();
         	parentInterface.addLink(uri, "general services","GET");
+        	
         	if (thisParent.getUsername().equals(id)) {
 	            return Response.status(Response.Status.OK).entity(parentInterface).type(negotiation(h)).build();
 	        }
@@ -147,24 +145,27 @@ public class ParentResource{
 	        	 }
         
     }
-//triggerare nel caso di password	
+
 	@PUT
 	@Path("personal")
-
 	public Response setParentPersonal(ParentWrapper parIn,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 		
 		Parent updateParent = parentDao.get(parIn.getUsername());
 		updateParent.setName(parIn.getName());
 		updateParent.setPassword(parIn.getPassword());
 		updateParent.setSurname(parIn.getSurname());
+		
 		List<Link> uris = new ArrayList<Link>();
 		String uri=uriInfo.getAbsolutePathBuilder().build().toString();
 		addLinkToList(uris, uri, "self", "PUT");
-		addLinkToList(uris, uri, "see self", "GET");
+		
+		addLinkToList(uris, uri, "see personal data", "GET");
+		
 		uri=uriInfo.getBaseUriBuilder().path(ParentResource.class)
 				.resolveTemplate("user_id",updateParent.getUsername()).build().toString();
         addLinkToList(uris, uri, "general services", "GET");
-		GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
+		
+        GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
 		 if (parentDao.update(updateParent)) {
 	            return Response.status(Response.Status.OK).entity(e).type(negotiation(h)).build();
 	        }
@@ -175,7 +176,6 @@ public class ParentResource{
 	
 	@GET
 	@Path("children")
-
     public Response  getSonsList(@PathParam("user_id") String id,@Context UriInfo uriInfo,@Context HttpHeaders h) {
 		List<StudentResponse> studentInterfaces = new ArrayList<StudentResponse>();
     	Parent thisParent = parentDao.get(id);
@@ -190,9 +190,11 @@ public class ParentResource{
     		studentInterface.setRollNo(i.getRollNo());
     		String uri;
     		if (studentInterfaces.isEmpty()) {
-	    		uri=uriInfo.getBaseUriBuilder().path(ParentResource.class).path(id).path("son").path(Long.toString(i.getRollNo())).build().toString();
-	        	studentInterface.addLink(uri, "self","GET");
-	        	uri=uriInfo.getBaseUriBuilder().path(ParentResource.class)
+    			
+    			uri=uriInfo.getAbsolutePathBuilder().build().toString();
+    			studentInterface.addLink(uri, "self","GET");
+	        	
+    			uri=uriInfo.getBaseUriBuilder().path(ParentResource.class)
 	    				.resolveTemplate("user_id",id).build().toString();
 	        	studentInterface.addLink(uri, "general services","GET");
     		}
@@ -202,6 +204,7 @@ public class ParentResource{
     		studentInterface.addLink(uri, "see child in specific","GET");
     		studentInterfaces.add(studentInterface);
     	}
+    	
     	GenericEntity<List<StudentResponse>> e = new GenericEntity<List<StudentResponse>>(studentInterfaces) {};
     	if (!studentInterfaces.isEmpty()) {
             return Response.status(Response.Status.OK).entity(e).type(negotiation(h)).build();
@@ -212,7 +215,6 @@ public class ParentResource{
 	
 	@GET
 	@Path("child/{roll_id}")
-
     public Response  sonByRollNum(@PathParam("user_id") String id,@PathParam("roll_id")int rollNum,@Context HttpHeaders h,@Context UriInfo uriInfo) {
     	StudentResponse studentInterface= null;
 		Parent thisParent = parentDao.get(id);
@@ -224,15 +226,20 @@ public class ParentResource{
 				studentInterface.setLastName(i.getLastName());
 				studentInterface.setName(i.getName());
 				studentInterface.setRollNo(i.getRollNo());
+				
 				String uri=uriInfo.getAbsolutePathBuilder().build().toString();
 		    	studentInterface.addLink(uri, "self","GET");
+		    	
 		    	studentInterface.addLink(uri, "modify self","PUT");
-		    	uri=uriInfo.getBaseUriBuilder().path(ParentResource.class).path(id).
+		    	
+		    	uri=uriInfo.getBaseUriBuilder().path(ParentResource.class).resolveTemplate("user_id",id).
 		    			path("child").path(Long.toString(i.getRollNo())).path("marks").build().toString();
 		    	studentInterface.addLink(uri, "marks","GET");
-		    	uri=uriInfo.getBaseUriBuilder().path(ParentResource.class).path(id).
+		    	
+		    	uri=uriInfo.getBaseUriBuilder().path(ParentResource.class).resolveTemplate("user_id",id).
 		    			path("children").build().toString();
 		    	studentInterface.addLink(uri, "see all children of this parent","GET");
+		    	
 		    	uri=uriInfo.getBaseUriBuilder().path(ParentResource.class)
 	    				.resolveTemplate("user_id",id).build().toString();
 	        	studentInterface.addLink(uri, "general services","GET");
@@ -245,9 +252,9 @@ public class ParentResource{
              throw new DataNotFoundException();
         }
     }
+	
 	@PUT
 	@Path("child/{roll_id}")
-
 	public Response setSonPersonal(@PathParam("user_id") String id,@PathParam("roll_id")int rollNum,Wrapper sonIn,
 			@Context UriInfo uriInfo,@Context HttpHeaders h) {
 		Parent parent= parentDao.get(id);
@@ -261,11 +268,14 @@ public class ParentResource{
 				List<Link> uris = new ArrayList<Link>();
 				String uri=uriInfo.getAbsolutePathBuilder().build().toString();
 				addLinkToList(uris, uri, "self", "PUT");
+				
 				addLinkToList(uris, uri, "see self", "GET");
+				
 				uri=uriInfo.getBaseUriBuilder().path(ParentResource.class)
 						.resolveTemplate("user_id",id).build().toString();
 		        addLinkToList(uris, uri, "general services", "GET");
-				GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
+				
+		        GenericEntity<List<Link>> e = new GenericEntity<List<Link>>(uris) {};
 				if (studentDao.update(s)) {
 		            return Response.status(Response.Status.OK).entity(e).type(negotiation(h)).build();
 		        }
@@ -279,12 +289,10 @@ public class ParentResource{
 	
 	@Path("child/{son_id}/marks")
 	@GET
-
     public Response getMarkSon(@PathParam("user_id") String id,@PathParam("son_id") int n_stud,
     		@Context UriInfo uriInfo,@Context HttpHeaders h) {
 		List< EvaluationResponse> newListofResp = new ArrayList<EvaluationResponse>();
 		List<Evaluation> allCourse = course_classDao.findAll();
-		System.out.println("size di course class: "+ allCourse.size());
         Parent thisParent = parentDao.get(id);
         Iterator<Student> onSon =thisParent.getSon().iterator();
         EvaluationResponse newResp= new EvaluationResponse();
@@ -293,17 +301,19 @@ public class ParentResource{
         		
         		for(Evaluation cc : allCourse) {
         		
-        			System.out.println("idStud " + i.getRollNo());
         			if (i.getRollNo()==cc.getId().getStudentId().getRollNo()) {
         				newResp=new EvaluationResponse();
         				newResp.setMark(cc.getMark());
+        				
         				String uri= uriInfo.getAbsolutePathBuilder().build().toString();
         				newResp.addLink(uri, "self", "GET");
+        				
         				uri=uriInfo.getBaseUriBuilder().path(ParentResource.class)
         	    				.resolveTemplate("user_id",id).build().toString();
         	        	newResp.addLink(uri, "general services","GET");
         				newListofResp.add(newResp);
-        				uri=uriInfo.getBaseUriBuilder().path(ParentResource.class).path(id).
+        				
+        				uri=uriInfo.getBaseUriBuilder().path(ParentResource.class).resolveTemplate("user_id",id).
         		    			path("children").build().toString();
         		    	newResp.addLink(uri, "see all children of this parent","GET");
         			}
@@ -425,7 +435,7 @@ public class ParentResource{
 	@GET
 
     public Response  getPaymentHistory(@PathParam("user_id") String id,@Context UriInfo uriInfo,@Context HttpHeaders h) {
-		
+		System.out.println("ciao we ");
 		List<Payement> ds = paymentDao.findAll();
 		List<PaymentResponse> newDs = new ArrayList<PaymentResponse>();
 		
@@ -434,7 +444,9 @@ public class ParentResource{
         	//System.out.println(p.parentUsername);
         	//sistemare l'if con contesto notification date (?)
     		if (p.getParentUsername().equals(id) && p.isPayed()==true) {
+    			
     			PaymentResponse ps = new PaymentResponse();
+    			
     			ps.setPayID(p.getPayID());
     			ps.setParentUsername(p.getParentUsername());
     			ps.setPaymentDescription(p.getPaymentDescription());
@@ -456,6 +468,7 @@ public class ParentResource{
     			newDs.add(ps);
     		}
     	}
+        System.out.println("wwee");
         GenericEntity<List<PaymentResponse>> e = new GenericEntity<List<PaymentResponse>>(newDs) {};
         if (!newDs.isEmpty()) {
             return Response.status(Response.Status.OK).entity(e).type(negotiation(h)).build();

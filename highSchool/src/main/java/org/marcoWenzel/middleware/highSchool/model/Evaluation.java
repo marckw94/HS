@@ -4,13 +4,10 @@ import java.io.Serializable;
 
 import javax.persistence.AssociationOverride;
 import javax.persistence.AssociationOverrides;
-import javax.persistence.Column;
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
-import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.Table;
-import javax.validation.constraints.Size;
+
 
 
 @AssociationOverrides({
@@ -24,6 +21,7 @@ public class Evaluation  implements Serializable {
 	private boolean isPass;
 	private int mark;
 	public Evaluation () {}
+	
 	@EmbeddedId 
 	public Evaluation_Id getId() {
 		return primaryKey;

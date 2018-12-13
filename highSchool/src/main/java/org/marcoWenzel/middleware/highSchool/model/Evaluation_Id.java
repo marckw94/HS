@@ -3,11 +3,8 @@ package org.marcoWenzel.middleware.highSchool.model;
 import java.io.Serializable;
 
 import javax.persistence.CascadeType;
-import javax.persistence.Column;
 import javax.persistence.Embeddable;
-import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 
 @Embeddable
@@ -16,17 +13,18 @@ public class Evaluation_Id  implements Serializable {
 	private Course courseId;
 	
  	private Student studentId;
- 	//@ManyToOne
 	public Evaluation_Id() {}
+	
 	@OneToOne(cascade=CascadeType.ALL)
 	@JoinColumn(name="COURSE_ID")
 	public Course getCourseId() {
 		return courseId;
 	}
+	
 	public void setCourseId(Course courseId) {
 		this.courseId = courseId;
 	}
-	//@ManyToOne
+	
 	@OneToOne(cascade=CascadeType.ALL)
 	@JoinColumn(name="STUDENT_ID")
 	public Student getStudentId() {
@@ -35,6 +33,7 @@ public class Evaluation_Id  implements Serializable {
 	public void setStudentId(Student studentId) {
 		this.studentId = studentId;
 	}
+	
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -43,6 +42,7 @@ public class Evaluation_Id  implements Serializable {
 		result = prime * result + ((studentId == null) ? 0 : studentId.hashCode());
 		return result;
 	}
+	
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)

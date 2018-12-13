@@ -38,8 +38,4 @@ public class TimeTable_Id  implements Serializable {
 		this.day = day;
 	}
 	
-
-	 
-
-	
 }

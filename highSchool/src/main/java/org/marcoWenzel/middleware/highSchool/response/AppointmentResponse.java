@@ -5,9 +5,11 @@ import java.util.Date;
 import java.util.List;
 
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
 
 import org.marcoWenzel.middleware.highSchool.util.Link;
 @XmlRootElement
+@XmlType(propOrder = {"appointmentId", "parentUsername", "teacherId", "appointmentDate","links"})
 public class AppointmentResponse {
 	private int appointmentId;
 	private String parentUsername;

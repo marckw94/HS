@@ -47,7 +47,6 @@ public class TokenManager {
 					   .withHeader(headerClaims)
 					   .sign(algorithm);
 			
-			System.out.println(token);
 			
 			/* 
 			 * Questo serve solo per far vedere come si decodifica un token.
@@ -61,7 +60,6 @@ public class TokenManager {
 			
 			DecodedJWT jwt = JWT.decode(token);
 			
-			System.out.println(jwt.getClaim("category").asString());
 			return token;
 		} catch (JWTVerificationException e) {
 			e.printStackTrace();

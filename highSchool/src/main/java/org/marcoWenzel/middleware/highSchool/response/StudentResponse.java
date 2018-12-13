@@ -5,17 +5,27 @@ import java.util.List;
 
 import javax.persistence.Table;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
 
 import org.marcoWenzel.middleware.highSchool.util.Link;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+
 @Table
 @XmlRootElement
+/*
+@JsonPropertyOrder({
+	"rollNo",
+	"name",
+	"lastName",
+	"links"
+})*/
+@XmlType(propOrder = {"rollNo", "name", "lastName", "links"})
 public class StudentResponse {
 	
 	private int rollNo;
-
 	private String name;
-
 	private String lastName;
 	private List<Link> links  = new ArrayList<>();
 	public int getRollNo() {
