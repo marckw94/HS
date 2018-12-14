@@ -32,4 +32,4 @@ Use appropriate authentication to ensure that specific users can only interact w
 resources.
 Evaluated on: design of the API (resources/URIs/representations) + hypermedia
 
-[Link to documentation]https://github.com/marckw94/HS/blob/master/DocumentazioneRestAPI.pdf
+[Link to documentation](https://github.com/marckw94/HS/blob/master/DocumentazioneRestAPI.pdf)
