@@ -31,3 +31,5 @@ specific class, or to a single specific parent/teacher.
 Use appropriate authentication to ensure that specific users can only interact with specific
 resources.
 Evaluated on: design of the API (resources/URIs/representations) + hypermedia
+
+[Link to documentation]https://github.com/marckw94/HS/blob/master/DocumentazioneRestAPI.pdf
